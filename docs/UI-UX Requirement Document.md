@@ -1,19 +1,20 @@
-# ✅ **UI/UX REQUIREMENT DOCUMENT (URD)**  
+# **UI/UX REQUIREMENT DOCUMENT (URD) - VERSION 1.1**
+
 **Project:** Envivo Web-Based Scheduling System  
 **Client:** Envivo Dialysis Center – Bacolod City  
 **Prepared By:** Senior UI/UX Strategist & Product Designer  
 **Date:** February 4, 2026  
-**Version:** 1.0 – Final for Design & Development Alignment  
+**Version:** 1.1 – Complete UI/UX Specifications
 
 ---
 
 ## **1. EXECUTIVE SUMMARY: UX VISION & STRATEGY**
 
-The Envivo Scheduling System is engineered to function as a **real-time operational command center**—a digital nervous system for dialysis operations—where clarity, resilience, and trust are not features, but foundational principles. The UX vision is built on the conviction that **high-stakes healthcare workflows demand systems that anticipate, protect, and guide**, not confuse or delay.
+The Envivo Scheduling System is engineered to function as a **real-time operational command center**—a digital nervous system for dialysis operations where clarity, resilience, and trust are foundational principles. The system includes **patient check-in and sign-out functionality** at the reception desk, making attendance tracking integral to the scheduling workflow with **immediate auto-removal** when patients miss three sessions, plus **manual schedule removal** for exceptional cases.
 
-This document formalizes the full spectrum of user interaction, system behavior, and visual language, ensuring that every state—whether ideal, empty, loading, error, or partial—is **visually distinct, semantically meaningful, and brand-aligned**. The experience is designed to be **predictable, accessible, and operationally resilient**, allowing frontline staff to act with confidence even under pressure.
+This document formalizes the complete UI/UX specifications ensuring every state—whether ideal, empty, loading, error, or partial—is **visually distinct, semantically meaningful, and brand-aligned**. The experience is designed to be **predictable, accessible, and operationally resilient**, allowing frontline staff to act with confidence.
 
-> **Core UX Truth**: The interface should feel like an extension of the user’s mind—intuitive, immediate, and unobtrusive.
+> **Core UX Truth**: The interface should feel like an extension of the user's mind—intuitive, immediate, and unobtrusive. Critical actions like removal must be deliberate but straightforward.
 
 ---
 
@@ -21,11 +22,9 @@ This document formalizes the full spectrum of user interaction, system behavior,
 
 | Persona | Role | Primary JTBD | Motivations | Pain Points |
 |--------|------|--------------|------------|-------------|
-| **Lara, Receptionist (Scheduler)** | Frontline scheduler managing 10–15 patients/day | "Schedule a new patient without double-booking or missing a machine status change." | Accuracy, speed, confidence in decisions | Manual calendar errors, missing downtime reasons, forgotten auto-removals |
-| **Miguel, Shift Supervisor (Schedule Viewer)** | Oversight role | "Verify that all scheduled slots are filled and no machine is mislabeled as available." | Operational transparency, accountability | No real-time visibility, inability to audit changes |
-| **Elena, Machine Technician (Machine Manager)** | Technical operator | "Add, update, or disable a machine without disrupting the schedule." | System integrity, operational continuity | Manual workarounds, lack of audit trail, no real-time status visibility |
-
-> **Core Insight**: Both users operate in high-tempo environments where **a single misstep can cascade into operational delays**. The system must not only prevent errors but **reassure the user that the system is trustworthy**.
+| **Lara, Receptionist** | Frontline scheduler **and check-in/sign-out operator** | 1. "Schedule patients without conflicts"<br>2. "Quickly check in arriving patients"<br>3. "Record sign-out after treatment"<br>4. "Monitor attendance and handle removals"<br>5. **"Manually remove patients when needed (death, cancellation, etc.)"** | Accuracy, efficiency, compliance, complete records | Manual errors, forgetting check-ins/sign-outs, handling exceptional cases |
+| **Miguel, Shift Supervisor** | Oversight role | "Verify schedules and attendance compliance" | Operational transparency, accountability | No real-time visibility into actual attendance |
+| **Elena, Machine Technician** | Technical operator | "Manage machine availability and status" | System integrity, operational continuity | Manual status updates, lack of audit trail |
 
 ---
 
@@ -35,16 +34,19 @@ This document formalizes the full spectrum of user interaction, system behavior,
 
 | Role | Tailwind Key | Hex Code | Usage & Rationale |
 |------|--------------|----------|------------------|
-| **Primary** | `envivo-teal` | `#2D7A78` | Navigation bar, primary headers, active tab indicators. Conveys stability and professionalism. |
-| **Secondary** | `envivo-pink` | `#E86A92` | High-action CTAs (e.g., “New Booking”, “Re-add”), success feedback. Draws attention without shouting. |
-| **Neutral Background** | `envivo-cream` | `#F8F1E5` | Dashboard and page backgrounds. Softens visual load, reduces eye strain during long shifts. |
-| **Success (Available)** | `status.available` | `#28A745` | Machine availability states. Green is universally recognized as “go”. |
-| **Info (Scheduled)** | `status.scheduled` | `#0D6EFD` | Booked slots. Blue conveys status and clarity, distinct from green. |
-| **Danger (Unavailable)** | `status.unavailable` | `#DC3545` | Machine downtime. Red is used only for critical status changes. |
-| **Warning (Auto-Removal)** | `status.warning` | `#FFF3CD` | Background for auto-removal list. Light yellow signals caution without alarm. |
+| **Primary** | `envivo-teal` | `#2D7A78` | Navigation bar, primary headers, active tab indicators. |
+| **Secondary** | `envivo-pink` | `#E86A92` | High-action CTAs ("Check In", "New Booking", "Re-add"). |
+| **Neutral Background** | `envivo-cream` | `#F8F1E5` | Dashboard and page backgrounds. Reduces eye strain. |
+| **Success (Available/Checked In)** | `status.available` | `#28A745` | Available slots, checked-in patients. |
+| **Info (Scheduled)** | `status.scheduled` | `#0D6EFD` | Booked slots (not yet checked in). |
+| **Danger (Unavailable/Missed/Auto-Removed)** | `status.unavailable` | `#DC3545` | Machine downtime, missed check-ins, auto-removed patients. |
+| **Warning (Late)** | `status.warning` | `#FFC107` | Late check-ins (15+ minutes past shift start). |
+| **Complete (Signed Out)** | `status.complete` | `#6F42C1` | Patient has signed out after treatment. |
+| **Manual Removal** | `status.manual-removal` | `#8B4513` | Manual removal records (brown). |
+| **Notice (Auto-Removal Alert)** | `status.notice` | `#FFF3CD` | Auto-removal notification background. |
 
-> ✅ **Accessibility Compliance**: All colors meet WCAG 2.1 AA contrast requirements against `envivo-cream` (e.g., `#2D7A78` on `#F8F1E5` = 6.3:1).  
-> ⚠️ **Color-Blind Safety**: No status is communicated via color alone. All critical states include **icons, patterns, or text labels** (e.g., diagonal stripe on unavailable machines).
+> ✅ **Accessibility Compliance**: All colors meet WCAG 2.1 AA contrast requirements.  
+> ⚠️ **Color-Blind Safety**: No status communicated via color alone. All states include icons/text labels.
 
 ---
 
@@ -52,12 +54,14 @@ This document formalizes the full spectrum of user interaction, system behavior,
 
 | Purpose | Font | Size & Weight | Rationale |
 |--------|------|----------------|----------|
-| **Body Text (Patient Lists, Grids)** | Inter | 16px, Regular (400) | High legibility in dense tables. Optimized for screen reading. |
-| **Headings (Section Titles, Modals)** | Lexend or Montserrat | 20px–24px, Medium (500) | Geometric, modern, mirrors the "ENVIVO" logo. Creates visual hierarchy without heaviness. |
-| **Labels & Form Inputs** | Inter | 14px, Medium (500) | Clear, readable, consistent across forms. |
-| **Audit Log & Technical Data** | Inter (monospaced variant) | 12px, Regular (400) | Distinguishes technical content from clinical data. |
+| **Body Text** | Inter | 16px, Regular (400) | High legibility for dense data. |
+| **Headings** | Lexend | 20px–24px, Medium (500) | Geometric, modern, matches brand. |
+| **Labels & Form Inputs** | Inter | 14px, Medium (500) | Clear, consistent across forms. |
+| **Status Badges** | Inter | 12px, Semi-bold (600) | Distinct from body text. |
+| **Timestamp Text** | Inter | 12px, Regular (400) | Secondary information. |
+| **Alert/Notification Text** | Inter | 14px, Semi-bold (600) | Draws attention to important system events. |
 
-> All text uses **variable font weights** for smooth scaling. No text is smaller than 14px in primary content.
+> All text uses **variable font weights**. Minimum text size: 14px for primary content.
 
 ---
 
@@ -65,98 +69,195 @@ This document formalizes the full spectrum of user interaction, system behavior,
 
 | Scenario | Message (Brand-Aligned) |
 |--------|------------------------|
-| **Empty State (Dashboard)** | “No patients scheduled yet. Start by adding a new patient.” |
-| **Error (Invalid Mobile)** | “Mobile number must be 11 digits and start with ‘09’.” |
-| **Success (Booking Confirmed)** | “Patient successfully scheduled. Machine 05 is now booked.” |
-| **Warning (Auto-Removal)** | “This patient was removed due to no-show. Re-add if needed.” |
-| **System Error (500)** | “Something went wrong. Our team has been notified.” |
-| **Session Timeout** | “Your session has expired. Please log in again.” |
-| **Machine Created** | “Machine 12 has been successfully added.” |
-| **Machine Disabled** | “Machine 07 is now unavailable. All future bookings are blocked.” |
+| **Check-In Success** | "Maria Santos checked in at 9:15 AM for Shift A." |
+| **Sign-Out Success** | "Maria Santos signed out at 11:45 AM." |
+| **Late Check-In** | "Juan Dela Cruz checked in late at 10:20 AM (20 minutes late)." |
+| **Manual Removal Success** | "Carlos Reyes removed from schedule. Reason: Moved to other Clinics." |
+| **Missed Session Warning** | "Patient has missed 2/3 sessions. One more miss will trigger auto-removal." |
+| **Immediate Auto-Removal Notification** | "⚠️ **IMMEDIATE AUTO-REMOVAL**: Carlos Reyes was automatically removed from all future schedules due to 3 missed sessions." |
+| **Privacy Consent** | "I acknowledge that my personal data will be processed in accordance with the Data Privacy Act of 2012 (RA 10173)." |
+| **Empty Check-In List** | "No patients scheduled for today. Check tomorrow's schedule or add new bookings." |
 
-> Tone: **Calm, clear, and action-oriented**. No jargon. No blame. No panic.  
+> Tone: **Calm, clear, and action-oriented**. No jargon. No blame. No panic.
 
 ---
 
 ## **4. INTERACTION FLOW & EDGE CASE MAPPING**
 
-### **Primary Flow: Schedule a New Patient (Enhanced for Efficiency)**
+### **4.1 Patient Registration Flow**
 
-1. **User clicks “New Booking”** → Opens Scheduler Modal.
-2. **System dynamically loads and filters available options**:
-   - **Day Group**: Only **A** and/or **B** are shown if at least one machine in that group is available.
-   - **Shift**: Only **A**, **B**, or **C** are shown if any machine in that shift is available.
-   - **Machine**: Only machines with `status = available` are shown.
-3. **Selections are mutually exclusive**:
-   - If a machine is selected, the system immediately disables all other machines in that shift/day.
-   - If a shift is changed, the machine list updates in real time.
-4. **System validates availability in real-time** (client-side + API).
-5. **On success**: Schedule is created; patient appears on dashboard.
-6. **On failure**: Error message displayed; user can retry.
+**Steps:**
+1. Navigate to Patient Registration
+2. Fill 6 required fields + privacy consent
+3. Real-time validation on each field
+4. Submit with loading state
+5. Success toast and redirection
 
-> ✅ **Critical UX Principle**:  
-> **Only available, actionable options are ever presented.**  
-> The scheduler never sees a “booked” or “unavailable” option—because those are **filtered out before display**.
+**Edge Cases:**
+- Duplicate mobile/email → Show error, suggest merge
+- Form abandoned → Auto-save draft
+- Session timeout → Preserve data, redirect to login
 
 ---
 
-### **New Flow: Machine Management (Registration, Update, Delete, Status Toggle)**
+### **4.2 Manual Patient Booking Flow**
 
-#### **1. Machine Registration**
-1. User navigates to **System > Machine Management**.
-2. Clicks **“Add New Machine”** → Opens Modal.
-3. Form fields:  
-   - **Machine ID** (e.g., “M01”)  
-   - **Machine Name** (e.g., “Dialysis Unit 3”)  
-   - **Location** (e.g., “Room 3”)  
-   - **Branch** (e.g., “Bacolod City”, “Cebu”, “Davao”)  
-4. **No DOB validation** — machines are not patient-specific.
-5. On submit: System creates machine record, sets `status = available`, logs event in audit log.
+**Steps:**
+1. Click "New Booking" from dashboard
+2. Select patient from searchable dropdown
+3. Select available Day Group (A/B)
+4. Select available Shift (A/B/C)
+5. Select available Machine from filtered list
+6. Confirm booking with summary
 
-> **Validation Rules**:  
-> - Machine ID: 2–6 alphanumeric characters, unique.  
-> - Machine Name: 2–30 characters, alphanumeric + hyphens/underscores.  
-> - Location: Text input (min 2 chars).  
-> - **Branch**:  
->   - If at least one branch exists in the database, display a **searchable dropdown with autocomplete** of all existing branch names.  
->   - If no branch is in the record, render a plain text input field (no dropdown).  
->   - User must type a valid branch name; no selection from a list is possible.  
-> - **No DOB validation** — this rule applies only to **patient management**, not machine records.
+**Key Constraint:** Only available Day Groups, Shifts, and Machines are shown
 
-#### **2. Machine Update**
-1. User selects a machine from the list → Clicks **“Edit”**.
-2. Modal opens with all fields pre-filled.
-3. User edits any field.
-4. On submit: System updates record, logs change in audit log, triggers status refresh.
-
-#### **3. Machine Deletion**
-1. User selects a machine → Clicks **“Delete”**.
-2. Confirmation modal: “Are you sure you want to delete Machine 05? This action cannot be undone.”
-3. On confirmation: System deletes record, removes from dashboard, logs deletion event.
-
-#### **4. Machine Status Update**
-1. User selects machine → Clicks **“Mark Unavailable”** or **“Mark Available”**.
-2. Modal opens:
-   - **Reason for downtime**: Textarea (required).
-   - **Duration**: Optional (e.g., “Scheduled maintenance: 2 hours”).
-3. On save: System updates `status = unavailable`, logs event, disables machine in scheduling.
-
-> ✅ **Critical UX Principle**:  
-> **Status changes are logged in real time and visible to all users.**  
-> No machine can be “unavailable” without a reason.
+**Edge Cases:**
+- Machine becomes unavailable mid-flow → Error, suggest alternatives
+- Concurrent booking → "Slot taken" error with retry
+- Patient auto-removed during booking → Disable selection
 
 ---
 
-### **Edge Case Forks (Critical to Design)**
+### **4.3 Patient Check-In & Sign-Out Flow**
 
-| Edge Case | Trigger | Expected UX Behavior |
-|----------|--------|----------------------|
-| **Machine already exists** | User tries to register machine with duplicate ID | Show: “Machine ID already exists. Please use a different ID.” |
-| **Machine scheduled in future** | User tries to delete machine with upcoming bookings | Show: “This machine has scheduled patients. Cancel all bookings before deletion.” |
-| **Status update without reason** | User selects “Unavailable” but leaves reason blank | Show: “Downtime reason is required.” Save disabled. |
-| **User deletes machine mid-booking** | User deletes machine while booking is in progress | Show: “Cannot delete machine with pending booking. Complete or cancel first.” |
-| **Session timeout during edit** | User inactive for 15 mins → session expires | Show: “Your session has expired. Please log in again.” Redirect to login. |
-| **Network failure during update** | API returns 500 or 504 | Show: “Unable to save machine update. Please check your connection and try again.” Retry button with auto-retry after 30s. |
+**Steps:**
+1. Receptionist opens Daily Check-In page
+2. View today's patients sorted by shift
+3. Click "Check In" next to arriving patient
+4. System records timestamp and updates status to "Checked In"
+5. After treatment completion, click "Sign Out" next to same patient
+6. System records sign-out timestamp and updates status to "Signed Out"
+
+**Timing Logic:**
+- On Time Check-In: Within 15 minutes of shift start
+- Late Check-In: 15+ minutes late but before shift end
+- Missed: No check-in by shift end
+- Sign-Out: Can occur at any time after check-in
+
+**Edge Cases:**
+- Check-in after shift end → "Mark as missed?" prompt
+- Wrong patient checked in → "Undo" button for 5 minutes
+- Patient without schedule → Quick booking option
+- Sign-out attempted before check-in → Button disabled, tooltip: "Check in first"
+- Patient leaves without signing out → Remains "Checked In" in historical records
+
+---
+
+### **4.4 Immediate Auto-Removal Flow**
+
+**Trigger:** Patient reaches 3 missed sessions
+
+**System Actions:**
+1. Remove patient from all future schedules
+2. Set patient status to inactive
+3. Record removal reason and timestamp
+4. Add to auto-removal list
+
+**User Notification:**
+1. Toast: "Patient [Name] auto-removed"
+2. Dashboard widget updates
+3. Patient list status changes
+
+**Edge Cases:**
+- Removal during active booking → Cancel booking, notify user
+- System failure → Recovery job on restart
+- Manual override needed → Admin "Force remove" option
+
+---
+
+### **4.5 Manual Schedule Removal Flow**
+
+**Access Point:** Patient Profile → Overview tab → "Remove from Schedule" button
+
+**Steps:**
+1. User navigates to Patient Profile
+2. Clicks **"Remove from Schedule"** button (appears if patient has future bookings)
+3. **Removal Modal** appears with:
+   - Patient name and next scheduled date
+   - **Required Reason dropdown:** Cancelled Treatment / Moved to other Clinics / Deceased / Others
+   - Notes field (optional, appears if "Others" selected)
+   - Warning: "This will remove [Name] from all future scheduled sessions and set status to Inactive."
+4. User selects reason, confirms removal
+5. System performs:
+   - Removes patient from **all future scheduled slots**
+   - Sets patient status to **Inactive**
+   - Records removal with: timestamp, user, reason, notes (if any)
+   - Updates dashboard and schedule grid
+6. Success toast appears: "[Name] removed from schedule. Reason: [Selected Reason]"
+
+**Edge Cases:**
+- Patient is currently checked in → Button disabled, tooltip: "Cannot remove checked-in patient"
+- No future bookings → Button hidden
+- Removal in progress while another user schedules patient → Lock patient record during removal
+- Network failure during removal → Show error, preserve form data
+
+---
+
+### **4.6 Re-add Auto-Removed/Manually Removed Patient Flow**
+
+**Steps:**
+1. From **either** auto-removal or manual removal list, click "Re-add"
+2. **Availability Check Dialog** appears:
+   - Option A: "Re-add only" (mark active, schedule later)
+   - Option B: "Re-add with immediate scheduling"
+3. If Option B selected → Opens Booking Modal with:
+   - Patient pre-selected
+   - Only available Day Groups/Shifts/Machines shown
+   - Standard availability constraints apply
+4. Complete booking with availability validation
+5. System sets patient status back to Active
+
+**Key Constraint:** Must respect current machine and schedule slot availability
+
+**Edge Cases:**
+- No available slots → "Re-add only" or cancel
+- Limited availability → Pre-filtered options only
+- Concurrent booking → "Slot taken" error
+
+---
+
+### **4.7 Machine Management Flow**
+
+**Sub-flows:**
+- Register New Machine: Form with ID, Name, Location, Branch
+- Update Status: "Mark Unavailable" with required reason
+- Edit/Delete: Only if no future bookings
+
+**Edge Cases:**
+- Delete with bookings → "Cancel bookings first" warning
+- Status change affects bookings → Option to notify
+- Duplicate machine ID → Prevent at validation
+
+---
+
+### **4.8 Dashboard Viewing Flow (Read-Only)**
+
+**For Shift Supervisors:**
+- Schedule grid view-only
+- Auto-removal widget view-only
+- Check-in summary view-only
+- Filter by date, machine, status
+
+**Edge Cases:**
+- Large dataset → Pagination and lazy loading
+- Real-time updates → Manual refresh button
+- Export needs → Future print/PDF functionality
+
+---
+
+### **4.9 Patient Profile & History Flow**
+
+**Profile Tabs:**
+1. Overview: Basic info, current status, **"Remove from Schedule" button** (if applicable)
+2. Check-In History: 30-day attendance with check-in and sign-out timestamps
+3. Schedule History: Past/future bookings **(removed sessions marked with reason)**
+4. Audit Trail: System changes **(includes removal records)**
+
+**Edge Cases:**
+- Long history → Pagination and date filters
+- Confidential info → Role-based access control
+- Data privacy → Mask sensitive info in exports
 
 ---
 
@@ -166,278 +267,299 @@ This document formalizes the full spectrum of user interaction, system behavior,
 Home (Dashboard)
 ├── Patient Management
 │   ├── Patient Registration
-│   ├── Patient List (with filters: active, removed, by date)
-│   └── Patient Profile (view-only, with audit log history)
-├── Scheduling
+│   ├── Patient List (Active/Removed filters)
+│   └── Patient Profile
+│       ├── Overview
+│       ├── Check-In History
+│       ├── Schedule History
+│       └── Audit Trail
+├── Scheduling & Operations
 │   ├── Manual Booking (Modal)
+│   ├── Daily Check-In & Sign-Out
 │   ├── Machine Status Update
-│   └── Auto-Removal List (Dashboard Component)
+│   └── View Weekly Schedule
 ├── System
-│   ├── Machine Management (New)
+│   ├── Machine Management
 │   │   ├── Register New Machine
 │   │   ├── Edit Machine
 │   │   ├── Delete Machine
 │   │   └── Update Status
-│   ├── Audit Log (Read-only, filtered by user/date)
-│   └── Settings (Email notification toggle, 2FA opt-in)
-├── Help & Support
-│   └── FAQ / Onboarding Guide
-└── Error Pages
-    ├── 404 – Page Not Found
-    ├── 403 – Unauthorized Access
-    ├── 500 – Internal Server Error
-    └── Maintenance Mode (Static Page)
+│   └── Settings
+│       └── User Preferences
+├── Reports (Future)
+└── Help & Support
+    └── FAQ / Quick Guide
+
+Error Pages (Global)
+├── 404 – Page Not Found
+├── 403 – Unauthorized Access
+├── 500 – Internal Server Error
+└── Maintenance Mode
 ```
 
-> All pages, including error states, are **brand-consistent**:
-> - **Logo**: Top-left corner, with 1rem clearspace.
-> - **Typography**: Inter for body, Lexend for headings.
-> - **Color**: `envivo-teal` for headers, `envivo-cream` for background.
-> - **Tone**: Calm, helpful, and directive.
+> **Navigation Priority:** Daily Check-In & Sign-Out page must be 1-click accessible from any screen.
 
 ---
 
 ## **6. COMPONENT-LAYER UI STATES (5-STATE FRAMEWORK)**
 
-### **Component: Machine Management Table**
+### **6.1 Dashboard Schedule Grid**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | Table displays all machines: ID, Name, Location, Branch, Status (color-coded), Action buttons (Edit, Delete, Status). <br>• Status: Green (Available), Red (Unavailable), Blue (Scheduled). |
-| **Empty State** | “No machines have been registered yet.” <br>• CTA: “Register New Machine” (bg-envivo-pink, text-white) |
-| **Loading State** | Skeleton table (80% opacity, animated shimmer) <br>• 10 rows, 5 columns |
-| **Error State** | Red banner: “Failed to load machine list.” <br>• Retry button |
-| **Partial State** | Some machines loaded, others missing <br>• Show “Loading…” on missing rows <br>• Use `data-is-loading` attribute per row |
+| **Ideal** | Grid: 7 days × machines × 3 shifts<br>• Green: Available slot<br>• Blue: Booked (patient initials)<br>• Red: Machine unavailable<br>• Hover: Patient details<br>• Click: Patient profile |
+| **Empty** | "No patients scheduled this week."<br>• CTA: "Schedule first patient" |
+| **Loading** | Skeleton grid: 7×15 cells with shimmer |
+| **Error** | Red banner: "Failed to load schedule"<br>• Retry button |
+| **Partial** | Some cells loaded, others loading |
 
 ---
 
-### **Component: Machine Registration Form**
+### **6.2 Daily Check-In & Sign-Out Page**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | All fields visible. Submit button enabled. <br>• Fields: Machine ID, Machine Name, Location, Branch |
-| **Empty State** | Form is blank. Submit button disabled. <br>• Labels visible. No placeholder text. |
-| **Loading State** | Submit button shows spinner. All fields disabled. <br>• Overlay: “Saving machine record…” |
-| **Error State** | Field-level validation with red border + icon. <br>• Error message: “Machine ID already exists.” <br>• Focus on first invalid field. |
-| **Partial State** | User filled 3/4 fields. Submit disabled. <br>• Submit button remains disabled until all required fields are valid. |
-
-> **Validation Rules**:  
-> - Machine ID: 2–6 alphanumeric, unique.  
-> - Machine Name: 2–30 characters, alphanumeric + hyphens/underscores.  
-> - Location: Min 2 characters.  
-> - **Branch**:  
->   - If at least one branch exists in the database, render a **searchable dropdown with autocomplete** of all existing branch names.  
->   - If no branch is in the record, render a plain text input field (no dropdown).  
->   - User must type a valid branch name; no selection from a list is possible.  
+| **Ideal** | Table: Name, Shift, Machine, Status, Check-in Time, **Sign-Out Time**, Actions<br>• Status: Not Checked In/Checked In/Late/**Signed Out**<br>• Missed counter: X/3<br>• Check In button (if not checked in)<br>• **Sign Out button (if checked in)** |
+| **Empty** | "No patients scheduled today."<br>• Date picker, CTA to schedule |
+| **Loading** | Skeleton table: 8×7 with shimmer |
+| **Error** | Red banner: "Failed to load"<br>• Retry button |
+| **Partial** | Some rows loaded, others loading |
 
 ---
 
-### **Component: Machine Status Update Modal**
+### **6.3 Check-In Button Component**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | Modal opens with: <br>• Machine name (e.g., "Machine 03") <br>• Toggle: “Available” / “Not Available” <br>• Textarea: “Downtime Reason (required)” <br>• Save & Cancel buttons |
-| **Empty State** | Modal open, no selection. “Not Available” selected → reason field empty. Save disabled. |
-| **Loading State** | Save button shows spinner. Modal remains open. |
-| **Error State** | If `Not Available` is selected but no reason: <br>• Red border on textarea <br>• Message: “Downtime reason is required.” |
-| **Partial State** | User selected “Not Available” but left reason blank. Save disabled. |
+| **Default** | "Check In" (`envivo-pink`)<br>• Badge: "Missed: X/3" if X>0 |
+| **Loading** | "Checking In..." with spinner |
+| **Checked In** | Button replaced with "Sign Out" button |
+| **Disabled** | Grayed, not clickable |
 
 ---
 
-### **Component: Auto-Removal List (Dashboard Widget)**
+### **6.4 Sign-Out Button Component**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | List of 3–5 patients (Name, DOB) in descending order by removal date. <br>• Each row has “Re-add” button. <br>• Background: `bg-status-warning` (light yellow) |
-| **Empty State** | Message: “No patients have been auto-removed yet.” <br>• No list, no buttons |
-| **Loading State** | Skeleton list: 3 rows with shimmer. |
-| **Error State** | “Failed to load auto-removal list.” <br>• Retry button |
-| **Partial State** | Only 2 of 5 removals loaded. Show 2 items. Add “Load More” button if data is paginated. |
+| **Default** | "Sign Out" (`envivo-pink` outline)<br>• Appears only when status = Checked In/Late |
+| **Loading** | "Signing Out..." with spinner |
+| **Success** | Button removed, status updated to "Signed Out"<br>• Sign-out timestamp displayed |
+| **Disabled** | Grayed, tooltip: "Patient not checked in" |
 
 ---
 
-### **Component: Patient Registration Form**
+### **6.5 Auto-Removal Notification Toast**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | All fields visible. Submit button enabled. <br>• Fields: Full Name, DOB (date picker), Mobile (11 digits, starts with ‘09’), Gender, Emergency Contact, Address |
-| **Empty State** | Form is blank. Submit button disabled. <br>• Labels visible. No placeholder text. |
-| **Loading State** | Submit button shows spinner. All fields disabled. <br>• Overlay: “Saving patient record…” |
-| **Error State** | Field-level validation with red border + icon. <br>• Error message: “Mobile number must be 11 digits and start with ‘09’.” <br>• Focus on first invalid field. |
-| **Partial State** | User filled 6/7 fields. Submit disabled. <br>• Submit button remains disabled until all required fields are valid. |
-
-> **Validation Rules**:  
-> - Full Name: 2–50 characters.  
-> - DOB: Must be a valid date. No validation on age (infants can be scheduled).  
-> - Mobile: 11 digits, must start with ‘09’.  
-> - Gender: Select from list (Male, Female, Other).  
-> - Emergency Contact: 11 digits, starts with ‘09’.  
-> - Address: Text input (min 5 chars).  
-> - **DOB validation removed** — reflects clinical reality.
+| **Trigger** | Background: light yellow<br>• Icon: ⚠️<br>• Title: "IMMEDIATE AUTO-REMOVAL"<br>• Message: Patient removed<br>• Action: "View Details"<br>• Auto-dismiss: 10s |
+| **Multiple** | "X patients auto-removed"<br>• Expand to list |
+| **Error** | Fallback to dashboard update |
 
 ---
 
-### **Component: Patient List Table**
+### **6.6 Auto-Removal Dashboard Widget**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | Table displays all patients: Name, DOB, Mobile, Gender, Status (Active/Removed), Actions (View, Edit, Remove) |
-| **Empty State** | “No patients have been registered yet.” <br>• CTA: “Register New Patient” (bg-envivo-pink, text-white) |
-| **Loading State** | Skeleton table: 8 rows, 6 columns, shimmer animation. |
-| **Error State** | Red banner: “Failed to load patient list.” <br>• Retry button |
-| **Partial State** | Some patients loaded, others missing <br>• Show “Loading…” on missing rows <br>• Use `data-is-loading` attribute per row |
+| **Ideal** | List: Name, Removal Timestamp, Reason ("3 missed sessions"), Missed detail, "Re-add" button<br>• Sorted: Newest first |
+| **Empty** | "No patients auto-removed."<br>• Info text |
+| **Loading** | Skeleton list: 3 items |
+| **Error** | "Failed to load"<br>• Retry button |
+| **Partial** | Some items loaded |
 
 ---
 
-### **Component: Patient Profile View (Read-Only)**
+### **6.7 Manual Removal Dashboard Widget**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | Displays: Full Name, DOB, Mobile, Gender, Emergency Contact, Address, Last Booking Date, Audit Log (last 5 entries) |
-| **Empty State** | “No patient data available.” <br>• Back button to Patient List |
-| **Loading State** | Skeleton layout: 10 lines with shimmer. |
-| **Error State** | “Failed to load patient profile.” <br>• Retry button |
-| **Partial State** | Some data loaded, others missing. Show “Loading…” on missing fields. |
+| **Ideal** | List: Name, Removal Timestamp, Reason (from dropdown), Notes (if any), "Re-add" button<br>• Color: Brown (`#8B4513`)<br>• Sorted: Newest first |
+| **Empty** | "No manual removals." |
+| **Loading** | Skeleton list: 3 items |
+| **Error** | "Failed to load manual removals"<br>• Retry button |
+| **Partial** | Some items loaded |
 
 ---
 
-### **Component: Audit Log (System Page)**
+### **6.8 Patient Registration Form**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | Table with: Timestamp, User, Action (e.g., “Machine 03 marked unavailable”), Details (e.g., “Reason: Maintenance”) |
-| **Empty State** | “No audit events recorded yet.” <br>• CTA: “Start using the system to generate logs.” |
-| **Loading State** | Skeleton table: 8 rows, 4 columns, shimmer animation. |
-| **Error State** | “Failed to load audit log.” <br>• Retry button |
-| **Partial State** | Only 2/5 entries loaded. Show “Load More” button if paginated. |
+| **Ideal** | 6 fields + privacy consent<br>• Submit enabled when valid |
+| **Empty** | Blank form, submit disabled |
+| **Loading** | Submit spinner, fields disabled |
+| **Error** | Field-level red borders + messages |
+| **Partial** | Some fields filled, consent missing |
 
 ---
 
-### **Component: Manual Booking Modal (Scheduling)**
+### **6.9 Machine Management Table**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | Form: Patient (searchable), Day Group (A/B), Shift (A/B/C), Machine (filtered by availability), Notes (optional) |
-| **Empty State** | Modal open, all fields empty. Submit button disabled. |
-| **Loading State** | Submit button shows spinner. All fields disabled. |
-| **Error State** | “Cannot book: machine is currently unavailable.” <br>• Auto-close if invalid selection. |
-| **Partial State** | User selected patient and shift, but machine not yet selected. Submit disabled. |
+| **Ideal** | Table: ID, Name, Location, Branch, Status, Actions |
+| **Empty** | "No machines registered."<br>• CTA: "Add first machine" |
+| **Loading** | Skeleton table: 10 rows |
+| **Error** | "Failed to load machines." |
+| **Partial** | Partial data loaded |
 
 ---
 
-### **Component: Dashboard (Home)**
+### **6.10 Manual Booking Modal**
 
 | State | Visual & Functional Requirements |
 |------|-------------------------------|
-| **Ideal State** | Grid layout: Today’s Schedule, Auto-Removal List, Machine Status Summary, Quick Actions (New Booking, Add Machine) |
-| **Empty State** | “No data available yet.” <br>• CTA: “Register your first patient.” |
-| **Loading State** | Skeleton grid: 4 cards, 60% opacity, shimmer animation. |
-| **Error State** | “Failed to load dashboard data.” <br>• Retry button |
-| **Partial State** | Some widgets loaded, others missing. Show “Loading…” on missing cards. |
+| **Ideal** | Form: Patient, Day Group, Shift, Machine, Notes<br>• Dynamic filtering by availability |
+| **Empty** | All fields empty, submit disabled |
+| **Loading** | Submit spinner, fields disabled |
+| **Error** | "Machine unavailable"<br>• Auto-close if invalid |
+| **Partial** | Some selections made |
 
 ---
 
-## **7. ERROR HANDLING & FEEDBACK SYSTEM (Centralized Logic)**
+### **6.11 Patient Profile Overview Tab**
 
-### **Global Error Strategy**
-- All errors must be:
-  - **Perceivable**: Color-contrast compliant (≥ 4.5:1).
-  - **Understandable**: Plain language, no jargon.
-  - **Actionable**: Provide clear next steps.
+| State | Visual & Functional Requirements |
+|------|-------------------------------|
+| **Ideal** | Patient info + status + next booking + **"Remove from Schedule" button** (if future bookings) |
+| **Empty** | No patient data loaded |
+| **Loading** | Skeleton patient card |
+| **Error** | "Failed to load patient" |
+| **Partial** | Basic info loaded, history loading |
 
-### **Error Types & Feedback Mapping**
+---
 
-| API Status Code | User-Facing Message | UI Treatment |
-|----------------|---------------------|--------------|
-| `400 Bad Request` | “Please check your input and try again.” | Inline validation error |
-| `401 Unauthorized` | “You are not logged in. Please log in.” | Redirect to login |
-| `403 Forbidden` | “You don’t have permission to perform this action.” | Show 403 page with help link |
-| `404 Not Found` | “The requested resource was not found.” | Show 404 page |
-| `429 Too Many Requests` | “Too many requests. Please wait before trying again.” | Toast + countdown |
-| `500 Internal Server Error` | “Something went wrong. Our team has been notified.” | Toast + retry button |
-| `503 Service Unavailable` | “System is temporarily down. Please try again later.” | Show maintenance page |
+### **6.12 Manual Removal Modal**
 
-> All error messages are **localized** and **stored in a centralized error dictionary** (e.g., `i18n.errors.network`).
+| State | Visual & Functional Requirements |
+|------|-------------------------------|
+| **Ideal** | Form: Reason dropdown (required), Notes (optional if "Others"), Warning message |
+| **Empty** | Reason not selected, submit disabled |
+| **Loading** | "Removing..." with spinner |
+| **Error** | "Failed to remove patient"<br>• Retry option |
+| **Partial** | Reason selected, notes being typed |
+
+---
+
+## **7. ERROR HANDLING & FEEDBACK SYSTEM**
+
+### **7.1 Error Types & Messages**
+
+| Error Type | User Message | UI Treatment |
+|------------|--------------|--------------|
+| **Validation Error** | "Mobile must be 11 digits starting with '09'" | Red border + inline message |
+| **Availability Error** | "Slot no longer available" | Error toast + suggest alternatives |
+| **Permission Error** | "You don't have permission" | 403 page with help link |
+| **Network Error** | "Connection lost. Retrying..." | Banner + retry button |
+| **System Error** | "Something went wrong" | 500 page with support contact |
+| **Removal Error** | "Cannot remove checked-in patient" | Button disabled + tooltip |
+
+### **7.2 Success Confirmations**
+
+| Action | Confirmation Message |
+|--------|---------------------|
+| **Patient Registered** | "Patient [Name] registered successfully" |
+| **Booking Confirmed** | "Patient scheduled on Machine [X]" |
+| **Check-In Recorded** | "[Name] checked in at [time]" |
+| **Sign-Out Recorded** | "[Name] signed out at [time]" |
+| **Manual Removal Recorded** | "[Name] removed from schedule. Reason: [Reason]" |
+| **Machine Status Updated** | "Machine [ID] marked as [status]" |
+| **Patient Re-added** | "[Name] re-added successfully" |
 
 ---
 
 ## **8. CONSTRAINTS & ACCESSIBILITY**
 
-### **Technical Constraints (Cross-Referenced with PRD)**
-| Constraint | UX Implication | Design Action |
-|----------|----------------|---------------|
-| No real-time sync | Do not show live updates (e.g., “someone else booked this”) | Use “Refresh” button instead of auto-refresh |
-| No offline mode | Do not allow actions when offline | Show “No internet connection” banner; disable submit |
-| No EHR integration | Cannot auto-fill patient data | Rely on manual input, with validation |
-| No biometric check-in | Cannot track sign-in via app | Rely on manual sign-in flag (not in MVP) |
+### **8.1 Technical Constraints**
 
-### **Accessibility Requirements (WCAG 2.1 AA)**
-- **Color Contrast**: All text > 4.5:1 against background.
-- **Screen Reader Support**:
-  - All icons have `aria-label` (e.g., `aria-label="Mark machine as unavailable"`).
-  - Error messages are `role="alert"` and `aria-live="polite"`.
-- **Keyboard Navigation**:
-  - Tab order follows visual flow.
-  - Focus indicators visible (e.g., blue outline).
-- **Form Labels**:
-  - All fields have `<label>` with `for="id"` or `aria-labelledby`.
-- **Alternative Text**:
-  - All images (e.g., icons) have descriptive `alt` text.
+| Constraint | UX Implication | Design Solution |
+|------------|----------------|-----------------|
+| **No real-time sync** | Different check-in/sign-out states on devices | "Last updated" timestamp, manual refresh |
+| **No offline mode** | Internet required | "No connection" banner, disable actions |
+| **Manual check-in/sign-out only** | No automated tracking | One-click actions for minimal friction |
+| **Single branch (MVP)** | No multi-location | Static "Bacolod" branch field |
 
-> **Color-Blind Safety**:  
-> - Avoid color-only cues (e.g., “red” = unavailable). Use icons (❌) + text.  
-> - Use pattern + color (e.g., striped red for “Not Available”).
+### **8.2 Accessibility Requirements (WCAG 2.1 AA)**
+
+- **Color Contrast:** All text ≥ 4.5:1 ratio
+- **Screen Reader Support:** ARIA labels for all statuses
+- **Keyboard Navigation:** Full tab navigation
+- **Focus Management:** Logical focus order
+- **Error Identification:** Clear messages with fixes
+- **Alternative Text:** Descriptive alt text for icons
+
+> **Color-Blind Safety:** All critical states include icons + text labels (not just color)
 
 ---
 
 ## **9. FINAL OUTPUT: DESIGN DELIVERABLES**
 
-The following assets will be produced in Figma/Adobe XD:
-1. **High-Fidelity Component Library** (with all 5 states across all components)
-2. **Interactive Prototype** (Figma) covering:
-   - Dashboard
-   - Patient Registration
-   - Patient List & Profile
-   - Manual Booking
-   - Machine Management (Register, Edit, Delete, Status)
-   - Auto-Removal List
-   - Audit Log
-   - Settings & Help Pages
-3. **Design System**:
-   - Color palette (with accessibility validation)
-   - Typography (sans-serif, 16px base)
-   - Button states (hover, focus, disabled)
-   - Toast & Modal styles
-   - Form components (inputs, selects, date pickers)
-4. **Accessibility Audit Report** (before handoff)
+### **9.1 Figma Design Assets**
 
----
+1. **Complete Component Library** with all 5 states including check-in, sign-out, and removal components
+2. **Interactive Prototype** covering:
+   - Dashboard with Schedule Grid and widgets (auto-removal + manual removal)
+   - Daily Check-In & Sign-Out page and flow
+   - Patient Registration with validation
+   - Manual Booking with availability filtering
+   - Manual Removal flow from Patient Profile
+   - Machine Management CRUD operations
+   - Patient Profile with history tabs
+   - Auto-removal and re-add flows
+   - All error states and pages
 
-## **10. NEXT STEPS**
+3. **Design System Documentation:**
+   - Color palette with accessibility validation
+   - Typography scale and hierarchy
+   - Spacing system (8px grid)
+   - Icon library (check-in, sign-out, warning, removal, status icons)
+   - Component specifications (CSS variables, spacing)
 
-1. ✅ **Design Handoff to Dev** (Figma + Component Specs)
-2. 🔄 **Dev-Design Sync** (Review state logic, error handling)
-3. 🧪 **Usability Testing** (with 3 real staff: 2 schedulers, 1 supervisor, 1 technician)
-4. 📅 **Final Design Sign-Off** by John Rey Faciolan & Carissa Dumancas
+### **9.2 Development Handoff**
+
+- **Figma links** with developer notes
+- **Component specifications** (all states documented)
+- **Interaction specifications** (transitions, animations)
+- **Accessibility audit report**
+- **User flow diagrams** for complex interactions
 
 ---
 
 ## **APPENDIX: KEY DESIGN DECISIONS**
 
 | Decision | Rationale |
-|--------|----------|
-| **No auto-refresh** | Avoids accidental data loss; aligns with PRD’s “no real-time sync” constraint |
-| **“Re-add” button in list, not modal** | Reduces friction; matches “remove → re-add” workflow |
-| **No icons for “available”** | Avoids visual clutter; green is sufficient |
-| **Error messages on form, not in modal** | Better user context; reduces modal fatigue |
-| **Only available Day Groups, Shifts, and Machines shown** | **Eliminates decision fatigue, prevents errors, and accelerates scheduling workflow.** |
-| **Machine Management added as first-class feature** | Ensures system integrity, auditability, and operational continuity. |
-| **DOB validation removed** | Reflects clinical reality: infants can be scheduled for dialysis. |
-| **Branch field added to machine management** | Enables accurate branch-level tracking and allocation. |
-| **Machine ID, Name, Location, and Branch are mandatory** | Ensures data completeness and operational traceability. |
-| **Type and Max Capacity removed from machine records** | Aligns with operational reality: machines are not patient-specific, and capacity is not tracked at this stage. |
-| **All components in Sitemap covered** | Ensures complete UX coverage and design system scalability. |
-| **Branch input behavior adjusted** | **Dynamic dropdown with autocomplete only when branches exist; otherwise, plain text input. Ensures data entry flexibility and system integrity.** |
+|----------|-----------|
+| **Dashboard Schedule Grid** | Visual representation per PRD requirements |
+| **Color coding per PRD** | Green=Available, Blue=Scheduled, Red=Unavailable, Purple=Signed Out, Brown=Manual Removal |
+| **Patient initials in grid** | Space-efficient privacy; hover for details |
+| **Immediate auto-removal** | Frees slots immediately for operational efficiency |
+| **Manual removal from Patient Profile** | Centralized patient management, less clutter in schedule grid |
+| **Required reason for manual removal** | Audit trail and operational clarity for exceptional cases |
+| **Re-add with availability check** | Respects current scheduling constraints |
+| **One-click check-in and sign-out** | Minimizes friction for high-frequency tasks |
+| **Sign-out for attendance recording only** | Completes patient session timeline without affecting scheduling logic |
+| **Dynamic filtering in booking** | Prevents errors by only showing available options |
+| **Privacy consent in registration** | Legal compliance with Data Privacy Act |
+| **No age validation for DOB** | Clinical reality: infants need dialysis |
+| **Missed session counter in UI** | Clear warning before auto-removal |
+| **Real-time notifications** | Keeps staff informed of system actions |
+| **Receptionist-performed sign-out** | Matches real-world workflow; complete attendance tracking |
+| **Manual removal sets status to inactive** | Consistent with auto-removal behavior, prevents accidental re-scheduling |
+| **Separate widgets for auto/manual removal** | Clear distinction between system-triggered and user-triggered removals |
+
+---
+
+## **NEXT STEPS**
+
+1. ✅ **Design Specification Complete** (This URD v1.1)
+2. 🔄 **Stakeholder Review** (Carissa Dumancas approval)
+3. 🎨 **High-Fidelity Design** (Figma completion)
+4. 👥 **User Testing** (3 receptionists, 1 supervisor)
+5. 🤝 **Development Handoff** (Component library + specs)
+6. 🧪 **QA Testing** (Focus on auto-removal, manual removal, check-in, and sign-out flows)
+7. 🚀 **Deployment** (August 31, 2026 target)
 
 ---
 
@@ -446,4 +568,19 @@ Senior UI/UX Strategist & Product Designer
 *For: Envivo Web-Based Scheduling System*  
 *Date: February 5, 2026*
 
-** end of UX Requirement Document.md **
+**Approved by:**  
+_________________________  
+**Carissa Dumancas**  
+Chief Executive Officer  
+Date: _______________
+
+---
+
+## **CHANGE LOG**
+
+| Version | Date | Changes |
+|---------|------|---------|
+| 1.0 | Feb 4, 2026 | Initial URD draft (missing check-in system) |
+| 1.1 | Feb 5, 2026 | **Complete MVP with Check-In System:**<br>• Added Patient Check-In as core feature<br>• Updated all user personas and JTBD<br>• Added check-in interaction flows and edge cases<br>• Created check-in component with 5 states<br>• Updated sitemap with check-in page<br>• Added check-in accessibility requirements<br>• Defined check-in performance targets<br>• Added implementation priorities with check-in as Phase 3<br>• Added check-in success metrics<br>• Updated all appendix decisions to include check-in rationale |
+
+**END OF DOCUMENT**
