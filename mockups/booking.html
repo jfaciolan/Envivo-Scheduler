@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Booking | Envivo Scheduling System</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lexend:wght@400;500;600&display=swap');
+        
+        :root {
+            --envivo-teal: #2D7A78;
+            --envivo-pink: #E86A92;
+            --envivo-cream: #F8F1E5;
+            --status-available: #28A745;
+            --status-scheduled: #0D6EFD;
+            --status-unavailable: #DC3545;
+            --status-warning: #FFC107;
+            --status-complete: #6F42C1;
+            --status-manual-removal: #8B4513;
+            --status-notice: #FFF3CD;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--envivo-cream);
+        }
+        
+        h1, h2, h3, h4 {
+            font-family: 'Lexend', sans-serif;
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+        
+        /* Animation for toast notifications */
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+        
+        .toast {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .toast.fade-out {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+        
+        /* Loading skeleton animation */
+        @keyframes shimmer {
+            0% { background-position: -200px 0; }
+            100% { background-position: calc(200px + 100%) 0; }
+        }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200px 100%;
+            animation: shimmer 1.5s infinite;
+        }
+        
+        /* Focus styles for accessibility */
+        *:focus {
+            outline: 2px solid var(--envivo-teal);
+            outline-offset: 2px;
+        }
+        
+        /* Status color classes */
+        .status-available { background-color: var(--status-available); }
+        .status-scheduled { background-color: var(--status-scheduled); }
+        .status-unavailable { background-color: var(--status-unavailable); }
+        .status-warning { background-color: var(--status-warning); }
+        .status-complete { background-color: var(--status-complete); }
+        .status-manual-removal { background-color: var(--status-manual-removal); }
+        
+        /* Status text colors */
+        .text-status-available { color: var(--status-available); }
+        .text-status-scheduled { color: var(--status-scheduled); }
+        .text-status-unavailable { color: var(--status-unavailable); }
+        .text-status-warning { color: var(--status-warning); }
+        .text-status-complete { color: var(--status-complete); }
+        .text-status-manual-removal { color: var(--status-manual-removal); }
+    </style>
+</head>
+<body x-data="bookingPage()" x-init="initPage()" class="min-h-screen">
+    <!-- Top Navigation -->
+    <nav class="bg-[#2D7A78] text-white p-4 shadow-md">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white p-2 rounded-lg">
+                    <i class="fas fa-heartbeat text-[#2D7A78] text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-semibold">Envivo Scheduling System</h1>
+                    <p class="text-sm opacity-80">Bacolod Dialysis Center</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center space-x-4">
+                <a href="dashboard.html" class="flex items-center space-x-2 hover:bg-teal-700 p-2 rounded transition">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="sign-in-and-out.html" class="flex items-center space-x-2 hover:bg-teal-700 p-2 rounded transition">
+                    <i class="fas fa-user-check"></i>
+                    <span>Daily Check-In</span>
+                </a>
+                <div class="relative group">
+                    <button class="flex items-center space-x-2 hover:bg-teal-700 p-2 rounded transition">
+                        <i class="fas fa-user-circle text-xl"></i>
+                        <span>Lara, Receptionist</span>
+                        <i class="fas fa-chevron-down text-xs"></i>
+                    </button>
+                    <div class="absolute right-0 mt-2 w-48 bg-white text-gray-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-10">
+                        <a href="#" class="block px-4 py-3 hover:bg-gray-100">My Profile</a>
+                        <a href="#" class="block px-4 py-3 hover:bg-gray-100">Settings</a>
+                        <div class="border-t border-gray-200"></div>
+                        <a href="#" class="block px-4 py-3 hover:bg-gray-100 text-red-600">Logout</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Main Content Container -->
+    <main class="container mx-auto py-6 px-4">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800 mb-2">Manual Patient Booking</h1>
+                    <p class="text-gray-600">Schedule patients for dialysis sessions with availability constraints</p>
+                </div>
+                <a href="dashboard.html" class="flex items-center space-x-2 text-[#2D7A78] hover:text-teal-700 font-medium">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to Dashboard</span>
+                </a>
+            </div>
+            
+            <!-- Breadcrumb -->
+            <div class="mt-4 flex items-center text-sm text-gray-500">
+                <a href="dashboard.html" class="hover:text-[#2D7A78]">Dashboard</a>
+                <i class="fas fa-chevron-right mx-2 text-xs"></i>
+                <span class="text-[#2D7A78] font-medium">Manual Booking</span>
+            </div>
+        </div>
+        
+        <!-- Booking Flow Steps -->
+        <div class="mb-8">
+            <div class="flex justify-center">
+                <div class="flex items-center w-full max-w-3xl">
+                    <!-- Step 1 -->
+                    <div class="flex items-center">
+                        <div :class="currentStep === 1 ? 'bg-[#E86A92] text-white' : 'bg-gray-300 text-gray-700'" 
+                             class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
+                            1
+                        </div>
+                        <div class="ml-3">
+                            <p :class="currentStep === 1 ? 'text-[#E86A92] font-medium' : 'text-gray-500'">Select Patient</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Connector -->
+                    <div class="flex-1 h-1 mx-4" :class="currentStep >= 2 ? 'bg-[#E86A92]' : 'bg-gray-300'"></div>
+                    
+                    <!-- Step 2 -->
+                    <div class="flex items-center">
+                        <div :class="currentStep === 2 ? 'bg-[#E86A92] text-white' : (currentStep > 2 ? 'bg-[#2D7A78] text-white' : 'bg-gray-300 text-gray-700')" 
+                             class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
+                            2
+                        </div>
+                        <div class="ml-3">
+                            <p :class="currentStep === 2 ? 'text-[#E86A92] font-medium' : (currentStep > 2 ? 'text-[#2D7A78]' : 'text-gray-500')">Day & Shift</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Connector -->
+                    <div class="flex-1 h-1 mx-4" :class="currentStep >= 3 ? 'bg-[#E86A92]' : 'bg-gray-300'"></div>
+                    
+                    <!-- Step 3 -->
+                    <div class="flex items-center">
+                        <div :class="currentStep === 3 ? 'bg-[#E86A92] text-white' : (currentStep > 3 ? 'bg-[#2D7A78] text-white' : 'bg-gray-300 text-gray-700')" 
+                             class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
+                            3
+                        </div>
+                        <div class="ml-3">
+                            <p :class="currentStep === 3 ? 'text-[#E86A92] font-medium' : (currentStep > 3 ? 'text-[#2D7A78]' : 'text-gray-500')">Select Machine</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Connector -->
+                    <div class="flex-1 h-1 mx-4" :class="currentStep >= 4 ? 'bg-[#E86A92]' : 'bg-gray-300'"></div>
+                    
+                    <!-- Step 4 -->
+                    <div class="flex items-center">
+                        <div :class="currentStep === 4 ? 'bg-[#E86A92] text-white' : 'bg-gray-300 text-gray-700'" 
+                             class="w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg">
+                            4
+                        </div>
+                        <div class="ml-3">
+                            <p :class="currentStep === 4 ? 'text-[#E86A92] font-medium' : 'text-gray-500'">Confirmation</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Booking Form Container -->
+        <div class="bg-white rounded-xl shadow-lg p-6 mb-8">
+            <!-- Step 1: Select Patient -->
+            <div x-show="currentStep === 1" x-transition:enter="transition ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 transform translate-x-4" 
+                 x-transition:enter-end="opacity-100 transform translate-x-0">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Select Patient</h2>
+                
+                <!-- Search and Filter -->
+                <div class="mb-6">
+                    <div class="flex flex-col md:flex-row md:items-center md:space-x-4 space-y-4 md:space-y-0">
+                        <div class="flex-1 relative">
+                            <i class="fas fa-search absolute left-3 top-3.5 text-gray-400"></i>
+                            <input 
+                                x-model="patientSearch" 
+                                @input="filterPatients()"
+                                type="text" 
+                                placeholder="Search patients by name, mobile, or email..." 
+                                class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D7A78] focus:border-transparent"
+                                aria-label="Search patients"
+                            >
+                        </div>
+                        <div class="flex space-x-2">
+                            <button @click="showActivePatients = true; filterPatients()" 
+                                    :class="showActivePatients ? 'bg-[#2D7A78] text-white' : 'bg-gray-200 text-gray-700'"
+                                    class="px-4 py-2 rounded-lg font-medium transition">
+                                Active Patients
+                            </button>
+                            <button @click="showActivePatients = false; filterPatients()" 
+                                    :class="!showActivePatients ? 'bg-[#2D7A78] text-white' : 'bg-gray-200 text-gray-700'"
+                                    class="px-4 py-2 rounded-lg font-medium transition">
+                                All Patients
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Patient Selection Table -->
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Patient Name
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Mobile
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Missed Sessions
+                                </th>
+                                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Action
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200">
+                            <template x-if="isLoading">
+                                <!-- Loading State -->
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12">
+                                        <div class="flex justify-center">
+                                            <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#2D7A78]"></div>
+                                        </div>
+                                        <p class="text-center mt-4 text-gray-500">Loading patients...</p>
+                                    </td>
+                                </tr>
+                            </template>
+                            
+                            <template x-if="!isLoading && filteredPatients.length === 0">
+                                <!-- Empty State -->
+                                <tr>
+                                    <td colspan="5" class="px-6 py-12">
+                                        <div class="text-center">
+                                            <i class="fas fa-users text-4xl text-gray-300 mb-4"></i>
+                                            <h3 class="text-lg font-medium text-gray-700 mb-2">No patients found</h3>
+                                            <p class="text-gray-500 mb-6" x-text="patientSearch ? 'No patients match your search criteria.' : 'No patients available for scheduling.'"></p>
+                                            <a href="patient-registration.html" class="inline-flex items-center px-4 py-2 bg-[#E86A92] text-white rounded-lg hover:bg-pink-600 transition">
+                                                <i class="fas fa-user-plus mr-2"></i>
+                                                Register New Patient
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </template>
+                            
+                            <template x-for="patient in filteredPatients" :key="patient.id">
+                                <tr class="hover:bg-gray-50 transition">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10 bg-[#2D7A78] rounded-full flex items-center justify-center text-white font-bold">
+                                                <span x-text="patient.firstName.charAt(0) + patient.lastName.charAt(0)"></span>
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900" x-text="patient.firstName + ' ' + patient.lastName"></div>
+                                                <div class="text-sm text-gray-500" x-text="patient.email"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900" x-text="patient.mobile"></div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span x-show="patient.status === 'active'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            Active
+                                        </span>
+                                        <span x-show="patient.status === 'inactive'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                                            <i class="fas fa-times-circle mr-1"></i>
+                                            Inactive
+                                        </span>
+                                        <span x-show="patient.status === 'auto-removed'" class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                            <i class="fas fa-exclamation-circle mr-1"></i>
+                                            Auto-Removed
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="w-24 bg-gray-200 rounded-full h-2.5 mr-3">
+                                                <div :class="patient.missedSessions === 0 ? 'bg-green-500' : (patient.missedSessions === 1 ? 'bg-yellow-500' : 'bg-red-500')" 
+                                                     class="h-2.5 rounded-full" 
+                                                     :style="'width: ' + (patient.missedSessions/3*100) + '%'">
+                                                </div>
+                                            </div>
+                                            <span class="text-sm font-medium" x-text="patient.missedSessions + '/3'"></span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <button @click="selectPatient(patient)" 
+                                                :disabled="patient.status === 'inactive' || patient.status === 'auto-removed'"
+                                                :class="(patient.status === 'inactive' || patient.status === 'auto-removed') ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#E86A92] hover:bg-pink-600'"
+                                                class="inline-flex items-center px-4 py-2 text-white rounded-lg transition">
+                                            <i class="fas fa-calendar-plus mr-2"></i>
+                                            Select
+                                        </button>
+                                    </td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Selected Patient Preview -->
+                <div x-show="selectedPatient" class="mt-8 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center">
+                            <div class="bg-blue-100 p-3 rounded-lg mr-4">
+                                <i class="fas fa-user text-blue-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="font-bold text-lg text-gray-800" x-text="selectedPatient.firstName + ' ' + selectedPatient.lastName"></h3>
+                                <p class="text-gray-600" x-text="'Mobile: ' + selectedPatient.mobile"></p>
+                            </div>
+                        </div>
+                        <div>
+                            <button @click="currentStep = 2" class="inline-flex items-center px-5 py-2.5 bg-[#E86A92] text-white rounded-lg hover:bg-pink-600 transition font-medium">
+                                Continue to Day & Shift
+                                <i class="fas fa-arrow-right ml-2"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Step 2: Select Day Group and Shift -->
+            <div x-show="currentStep === 2" x-transition:enter="transition ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 transform translate-x-4" 
+                 x-transition:enter-end="opacity-100 transform translate-x-0">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Select Day Group and Shift</h2>
+                
+                <!-- Selected Patient Info -->
+                <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="flex justify-between items-center">
+                        <div>
+                            <p class="text-sm text-gray-600">Selected Patient:</p>
+                            <p class="font-bold text-lg" x-text="selectedPatient.firstName + ' ' + selectedPatient.lastName"></p>
+                        </div>
+                        <button @click="currentStep = 1" class="text-sm text-[#2D7A78] hover:text-teal-700 font-medium">
+                            <i class="fas fa-edit mr-1"></i> Change Patient
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Day Group Selection -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4">Select Day Group</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <button @click="selectDayGroup('A')" 
+                                :class="selectedDayGroup === 'A' ? 'ring-2 ring-[#2D7A78] bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'"
+                                class="p-6 rounded-xl border border-gray-200 transition text-center">
+                            <div class="text-2xl font-bold text-gray-800 mb-2">Day Group A</div>
+                            <p class="text-gray-600">Monday, Wednesday, Friday</p>
+                            <div class="mt-4">
+                                <span :class="selectedDayGroup === 'A' ? 'bg-[#2D7A78] text-white' : 'bg-gray-200 text-gray-700'"
+                                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    3 days per week
+                                </span>
+                            </div>
+                        </button>
+                        
+                        <button @click="selectDayGroup('B')" 
+                                :class="selectedDayGroup === 'B' ? 'ring-2 ring-[#2D7A78] bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'"
+                                class="p-6 rounded-xl border border-gray-200 transition text-center">
+                            <div class="text-2xl font-bold text-gray-800 mb-2">Day Group B</div>
+                            <p class="text-gray-600">Tuesday, Thursday, Saturday</p>
+                            <div class="mt-4">
+                                <span :class="selectedDayGroup === 'B' ? 'bg-[#2D7A78] text-white' : 'bg-gray-200 text-gray-700'"
+                                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas fa-calendar-alt mr-1"></i>
+                                    3 days per week
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Shift Selection -->
+                <div class="mb-8">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4">Select Shift</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <button @click="selectShift('A')" 
+                                :class="selectedShift === 'A' ? 'ring-2 ring-[#2D7A78] bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'"
+                                :disabled="!selectedDayGroup || !isShiftAvailable('A')"
+                                class="p-6 rounded-xl border border-gray-200 transition text-center disabled:opacity-50 disabled:cursor-not-allowed">
+                            <div class="text-2xl font-bold text-gray-800 mb-2">Shift A</div>
+                            <p class="text-gray-600">7:00 AM - 10:00 AM</p>
+                            <div class="mt-4">
+                                <span :class="selectedShift === 'A' ? 'bg-[#2D7A78] text-white' : (isShiftAvailable('A') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')"
+                                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas mr-1" :class="isShiftAvailable('A') ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                    <span x-text="isShiftAvailable('A') ? 'Available' : 'Fully Booked'"></span>
+                                </span>
+                            </div>
+                        </button>
+                        
+                        <button @click="selectShift('B')" 
+                                :class="selectedShift === 'B' ? 'ring-2 ring-[#2D7A78] bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'"
+                                :disabled="!selectedDayGroup || !isShiftAvailable('B')"
+                                class="p-6 rounded-xl border border-gray-200 transition text-center disabled:opacity-50 disabled:cursor-not-allowed">
+                            <div class="text-2xl font-bold text-gray-800 mb-2">Shift B</div>
+                            <p class="text-gray-600">11:00 AM - 2:00 PM</p>
+                            <div class="mt-4">
+                                <span :class="selectedShift === 'B' ? 'bg-[#2D7A78] text-white' : (isShiftAvailable('B') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')"
+                                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas mr-1" :class="isShiftAvailable('B') ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                    <span x-text="isShiftAvailable('B') ? 'Available' : 'Fully Booked'"></span>
+                                </span>
+                            </div>
+                        </button>
+                        
+                        <button @click="selectShift('C')" 
+                                :class="selectedShift === 'C' ? 'ring-2 ring-[#2D7A78] bg-blue-50' : 'bg-gray-50 hover:bg-gray-100'"
+                                :disabled="!selectedDayGroup || !isShiftAvailable('C')"
+                                class="p-6 rounded-xl border border-gray-200 transition text-center disabled:opacity-50 disabled:cursor-not-allowed">
+                            <div class="text-2xl font-bold text-gray-800 mb-2">Shift C</div>
+                            <p class="text-gray-600">3:00 PM - 6:00 PM</p>
+                            <div class="mt-4">
+                                <span :class="selectedShift === 'C' ? 'bg-[#2D7A78] text-white' : (isShiftAvailable('C') ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800')"
+                                      class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium">
+                                    <i class="fas mr-1" :class="isShiftAvailable('C') ? 'fa-check-circle' : 'fa-times-circle'"></i>
+                                    <span x-text="isShiftAvailable('C') ? 'Available' : 'Fully Booked'"></span>
+                                </span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Next Step Button -->
+                <div class="flex justify-between">
+                    <button @click="currentStep = 1" class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Patient Selection
+                    </button>
+                    
+                    <button @click="currentStep = 3" 
+                            :disabled="!selectedDayGroup || !selectedShift"
+                            :class="(!selectedDayGroup || !selectedShift) ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#E86A92] hover:bg-pink-600'"
+                            class="inline-flex items-center px-5 py-2.5 text-white rounded-lg transition font-medium">
+                        Continue to Machine Selection
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 3: Select Machine -->
+            <div x-show="currentStep === 3" x-transition:enter="transition ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 transform translate-x-4" 
+                 x-transition:enter-end="opacity-100 transform translate-x-0">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Select Machine</h2>
+                
+                <!-- Booking Summary -->
+                <div class="mb-6 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                        <div>
+                            <p class="text-sm text-gray-600">Booking Summary:</p>
+                            <div class="flex flex-wrap items-center gap-4 mt-2">
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white text-gray-800 font-medium">
+                                    <i class="fas fa-user mr-1"></i>
+                                    <span x-text="selectedPatient.firstName + ' ' + selectedPatient.lastName"></span>
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white text-gray-800 font-medium">
+                                    <i class="fas fa-calendar mr-1"></i>
+                                    Day Group <span x-text="selectedDayGroup"></span>
+                                </span>
+                                <span class="inline-flex items-center px-3 py-1 rounded-full bg-white text-gray-800 font-medium">
+                                    <i class="fas fa-clock mr-1"></i>
+                                    Shift <span x-text="selectedShift"></span>
+                                </span>
+                            </div>
+                        </div>
+                        <button @click="currentStep = 2" class="mt-4 md:mt-0 text-sm text-[#2D7A78] hover:text-teal-700 font-medium">
+                            <i class="fas fa-edit mr-1"></i> Change Day/Shift
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Machine Selection -->
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium text-gray-800 mb-4">Available Machines</h3>
+                    
+                    <div class="mb-4 flex items-center justify-between">
+                        <p class="text-gray-600">Showing machines available for <span class="font-medium">Day Group <span x-text="selectedDayGroup"></span>, Shift <span x-text="selectedShift"></span></span></p>
+                        <div class="flex items-center space-x-2">
+                            <span class="inline-flex items-center text-sm">
+                                <div class="w-3 h-3 bg-green-500 rounded-full mr-1"></div>
+                                Available
+                            </span>
+                            <span class="inline-flex items-center text-sm">
+                                <div class="w-3 h-3 bg-red-500 rounded-full mr-1"></div>
+                                Not Available
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Machine Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+                        <template x-for="machine in filteredMachines" :key="machine.id">
+                            <button @click="selectMachine(machine)"
+                                    :class="selectedMachine && selectedMachine.id === machine.id ? 'ring-2 ring-[#2D7A78]' : ''"
+                                    :disabled="machine.status !== 'available'"
+                                    class="bg-white p-4 rounded-xl border border-gray-200 hover:shadow-md transition text-left disabled:opacity-50 disabled:cursor-not-allowed">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div>
+                                        <div class="text-lg font-bold text-gray-800" x-text="'Machine ' + machine.id"></div>
+                                        <div class="text-sm text-gray-600" x-text="machine.name"></div>
+                                    </div>
+                                    <div :class="machine.status === 'available' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'"
+                                         class="px-2 py-1 rounded text-xs font-bold">
+                                        <span x-text="machine.status === 'available' ? 'AVAILABLE' : 'UNAVAILABLE'"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="space-y-2">
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-map-marker-alt text-gray-400 mr-2 w-4"></i>
+                                        <span class="text-gray-600" x-text="machine.location"></span>
+                                    </div>
+                                    <div class="flex items-center text-sm">
+                                        <i class="fas fa-building text-gray-400 mr-2 w-4"></i>
+                                        <span class="text-gray-600" x-text="machine.branch"></span>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-4 pt-4 border-t border-gray-100">
+                                    <div class="text-xs text-gray-500">Next Available Slots:</div>
+                                    <div class="flex flex-wrap gap-1 mt-1">
+                                        <template x-for="slot in machine.nextAvailableSlots" :key="slot">
+                                            <span class="inline-block px-2 py-0.5 bg-blue-100 text-blue-800 text-xs rounded">
+                                                <span x-text="slot"></span>
+                                            </span>
+                                        </template>
+                                        <template x-if="machine.nextAvailableSlots.length === 0">
+                                            <span class="inline-block px-2 py-0.5 bg-gray-100 text-gray-800 text-xs rounded">
+                                                No slots
+                                            </span>
+                                        </template>
+                                    </div>
+                                </div>
+                            </button>
+                        </template>
+                    </div>
+                    
+                    <!-- No Machines Available -->
+                    <div x-show="filteredMachines.length === 0" class="text-center py-12">
+                        <i class="fas fa-cogs text-4xl text-gray-300 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-700 mb-2">No machines available</h3>
+                        <p class="text-gray-500 mb-6">All machines are either fully booked or marked as unavailable for the selected day group and shift.</p>
+                        <button @click="currentStep = 2" class="inline-flex items-center px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition">
+                            <i class="fas fa-calendar-alt mr-2"></i>
+                            Select Different Day/Shift
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Notes Field -->
+                <div class="mb-8">
+                    <label for="bookingNotes" class="block text-sm font-medium text-gray-700 mb-2">Booking Notes (Optional)</label>
+                    <textarea 
+                        x-model="bookingNotes" 
+                        id="bookingNotes" 
+                        rows="3" 
+                        class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#2D7A78] focus:border-transparent" 
+                        placeholder="Add any notes about this booking..."
+                        aria-label="Booking notes"
+                    ></textarea>
+                </div>
+                
+                <!-- Navigation Buttons -->
+                <div class="flex justify-between">
+                    <button @click="currentStep = 2" class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                        <i class="fas fa-arrow-left mr-2"></i>
+                        Back to Day & Shift
+                    </button>
+                    
+                    <button @click="currentStep = 4" 
+                            :disabled="!selectedMachine"
+                            :class="!selectedMachine ? 'bg-gray-300 cursor-not-allowed' : 'bg-[#E86A92] hover:bg-pink-600'"
+                            class="inline-flex items-center px-5 py-2.5 text-white rounded-lg transition font-medium">
+                        Review & Confirm Booking
+                        <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Step 4: Confirmation -->
+            <div x-show="currentStep === 4" x-transition:enter="transition ease-out duration-300" 
+                 x-transition:enter-start="opacity-0 transform translate-x-4" 
+                 x-transition:enter-end="opacity-100 transform translate-x-0">
+                <h2 class="text-xl font-bold text-gray-800 mb-6">Review & Confirm Booking</h2>
+                
+                <!-- Booking Summary Card -->
+                <div class="mb-8 bg-gray-50 rounded-xl border border-gray-200 overflow-hidden">
+                    <div class="bg-[#2D7A78] text-white p-4">
+                        <h3 class="text-lg font-bold">Booking Summary</h3>
+                        <p class="opacity-90">Please review all details before confirming</p>
+                    </div>
+                    
+                    <div class="p-6">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <!-- Patient Details -->
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-user text-[#2D7A78] mr-2"></i>
+                                    Patient Details
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-600">Full Name:</span>
+                                        <span class="font-medium" x-text="selectedPatient.firstName + ' ' + selectedPatient.lastName"></span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-600">Mobile:</span>
+                                        <span x-text="selectedPatient.mobile"></span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-600">Status:</span>
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                                            <i class="fas fa-check-circle mr-1"></i>
+                                            Active
+                                        </span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-600">Missed Sessions:</span>
+                                        <span x-text="selectedPatient.missedSessions + '/3'"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Booking Details -->
+                            <div>
+                                <h4 class="font-bold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-calendar-check text-[#2D7A78] mr-2"></i>
+                                    Booking Details
+                                </h4>
+                                <div class="space-y-2">
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-600">Day Group:</span>
+                                        <span class="font-medium" x-text="'Group ' + selectedDayGroup"></span>
+                                        <span class="ml-2 text-gray-500" x-text="selectedDayGroup === 'A' ? '(Mon, Wed, Fri)' : '(Tue, Thu, Sat)'"></span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-600">Shift:</span>
+                                        <span class="font-medium" x-text="'Shift ' + selectedShift"></span>
+                                        <span class="ml-2 text-gray-500" x-text="getShiftTime(selectedShift)"></span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-600">Machine:</span>
+                                        <span class="font-medium" x-text="'Machine ' + selectedMachine.id"></span>
+                                        <span class="ml-2 text-gray-500" x-text="selectedMachine.name"></span>
+                                    </div>
+                                    <div class="flex">
+                                        <span class="w-32 text-gray-600">Location:</span>
+                                        <span x-text="selectedMachine.location"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Notes -->
+                            <div x-show="bookingNotes" class="md:col-span-2">
+                                <h4 class="font-bold text-gray-800 mb-3 flex items-center">
+                                    <i class="fas fa-sticky-note text-[#2D7A78] mr-2"></i>
+                                    Booking Notes
+                                </h4>
+                                <div class="bg-white p-4 rounded-lg border border-gray-200">
+                                    <p x-text="bookingNotes"></p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Warning for patients with missed sessions -->
+                        <div x-show="selectedPatient.missedSessions > 0" class="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div class="flex items-start">
+                                <i class="fas fa-exclamation-triangle text-yellow-600 mt-1 mr-3"></i>
+                                <div>
+                                    <h4 class="font-bold text-yellow-800">Patient has missed sessions</h4>
+                                    <p class="text-yellow-700 mt-1">
+                                        This patient has missed <span x-text="selectedPatient.missedSessions"></span> out of 3 sessions. 
+                                        If they miss one more session, they will be automatically removed from all future schedules.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Final Actions -->
+                <div class="flex flex-col md:flex-row md:items-center md:justify-between">
+                    <div class="mb-4 md:mb-0">
+                        <p class="text-gray-600 text-sm">By confirming this booking, you agree that:</p>
+                        <ul class="text-gray-600 text-sm mt-1 list-disc pl-5">
+                            <li>The patient will be scheduled for all sessions in the selected day group</li>
+                            <li>Availability rules have been properly applied</li>
+                            <li>This booking may be subject to auto-removal if patient misses 3 sessions</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="flex space-x-4">
+                        <button @click="currentStep = 3" class="inline-flex items-center px-5 py-2.5 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                            <i class="fas fa-arrow-left mr-2"></i>
+                            Back to Machine Selection
+                        </button>
+                        
+                        <button @click="submitBooking()" 
+                                :disabled="isSubmitting"
+                                :class="isSubmitting ? 'bg-gray-400 cursor-not-allowed' : 'bg-[#E86A92] hover:bg-pink-600'"
+                                class="inline-flex items-center px-5 py-2.5 text-white rounded-lg transition font-medium">
+                            <template x-if="isSubmitting">
+                                <span class="flex items-center">
+                                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                                    Processing...
+                                </span>
+                            </template>
+                            <template x-if="!isSubmitting">
+                                <span class="flex items-center">
+                                    <i class="fas fa-check-circle mr-2"></i>
+                                    Confirm Booking
+                                </span>
+                            </template>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Availability Legend -->
+        <div class="bg-white rounded-xl shadow p-4 mb-8">
+            <h3 class="font-bold text-gray-800 mb-3">Availability Legend</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-green-500 rounded mr-2"></div>
+                    <span class="text-sm text-gray-700">Available - Slot is open for booking</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-blue-500 rounded mr-2"></div>
+                    <span class="text-sm text-gray-700">Booked - Patient is scheduled</span>
+                </div>
+                <div class="flex items-center">
+                    <div class="w-4 h-4 bg-red-500 rounded mr-2"></div>
+                    <span class="text-sm text-gray-700">Not Available - Machine is out of service</span>
+                </div>
+            </div>
+        </div>
+    </main>
+    
+    <!-- Toast Notification Container -->
+    <div class="fixed bottom-4 right-4 z-50 space-y-3" x-show="toasts.length > 0" x-transition>
+        <template x-for="toast in toasts" :key="toast.id">
+            <div :class="toast.type === 'success' ? 'bg-green-50 border-green-200' : (toast.type === 'error' ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200')"
+                 class="toast max-w-sm w-full p-4 rounded-lg border shadow-lg flex items-start">
+                <div class="flex-shrink-0 mr-3">
+                    <i :class="toast.type === 'success' ? 'fas fa-check-circle text-green-600' : (toast.type === 'error' ? 'fas fa-exclamation-circle text-red-600' : 'fas fa-exclamation-triangle text-yellow-600')"
+                       class="text-lg"></i>
+                </div>
+                <div class="flex-1">
+                    <h4 class="font-bold" x-text="toast.title"></h4>
+                    <p class="text-sm mt-1" x-text="toast.message"></p>
+                </div>
+                <button @click="removeToast(toast.id)" class="ml-3 text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </template>
+    </div>
+    
+    <!-- Slot Taken Modal -->
+    <div x-show="showSlotTakenModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4" x-transition>
+        <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+            <div class="flex items-center mb-4">
+                <div class="bg-red-100 p-3 rounded-full mr-4">
+                    <i class="fas fa-exclamation-triangle text-red-600 text-xl"></i>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-gray-800">Slot No Longer Available</h3>
+                    <p class="text-gray-600 mt-1">The selected slot was booked by another user while you were completing this form.</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-blue-50 rounded-lg">
+                <p class="text-gray-700 mb-3">Please select an alternative slot from the available options below:</p>
+                <div class="space-y-2">
+                    <template x-for="alternative in alternativeSlots" :key="alternative.id">
+                        <button @click="selectAlternativeSlot(alternative)" 
+                                class="w-full p-3 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 text-left flex justify-between items-center transition">
+                            <div>
+                                <div class="font-medium" x-text="'Machine ' + alternative.machineId"></div>
+                                <div class="text-sm text-gray-600" x-text="alternative.location"></div>
+                            </div>
+                            <i class="fas fa-arrow-right text-[#2D7A78]"></i>
+                        </button>
+                    </template>
+                </div>
+            </div>
+            
+            <div class="mt-6 flex justify-end space-x-3">
+                <button @click="showSlotTakenModal = false; currentStep = 1" class="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition">
+                    Start Over
+                </button>
+                <button @click="showSlotTakenModal = false" class="px-4 py-2 bg-[#2D7A78] text-white rounded-lg hover:bg-teal-700 transition">
+                    Return to Selection
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-6 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <div class="flex items-center">
+                        <div class="bg-white p-2 rounded-lg mr-3">
+                            <i class="fas fa-heartbeat text-[#2D7A78]"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-lg">Envivo Dialysis Center</h3>
+                            <p class="text-gray-300 text-sm">Bacolod City, Philippines</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center md:text-right">
+                    <p class="text-gray-300 text-sm">© 2026 Envivo Scheduling System. All rights reserved.</p>
+                    <p class="text-gray-400 text-xs mt-1">Compliant with Data Privacy Act (RA 10173)</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        function bookingPage() {
+            return {
+                // Current step in the booking flow
+                currentStep: 1,
+                
+                // Loading state
+                isLoading: false,
+                isSubmitting: false,
+                
+                // Search and filter states
+                patientSearch: '',
+                showActivePatients: true,
+                
+                // Selected values
+                selectedPatient: null,
+                selectedDayGroup: null,
+                selectedShift: null,
+                selectedMachine: null,
+                bookingNotes: '',
+                
+                // Toast notifications
+                toasts: [],
+                toastIdCounter: 0,
+                
+                // Modal state
+                showSlotTakenModal: false,
+                alternativeSlots: [],
+                
+                // Mock data - In a real app, this would come from an API
+                patients: [
+                    { id: 1, firstName: 'Maria', lastName: 'Santos', mobile: '09171234567', email: 'maria.santos@example.com', status: 'active', missedSessions: 0 },
+                    { id: 2, firstName: 'Juan', lastName: 'Dela Cruz', mobile: '09172345678', email: 'juan.delacruz@example.com', status: 'active', missedSessions: 1 },
+                    { id: 3, firstName: 'Ana', lastName: 'Reyes', mobile: '09173456789', email: 'ana.reyes@example.com', status: 'active', missedSessions: 0 },
+                    { id: 4, firstName: 'Pedro', lastName: 'Gonzales', mobile: '09174567890', email: 'pedro.gonzales@example.com', status: 'inactive', missedSessions: 3 },
+                    { id: 5, firstName: 'Sofia', lastName: 'Lim', mobile: '09175678901', email: 'sofia.lim@example.com', status: 'active', missedSessions: 2 },
+                    { id: 6, firstName: 'Carlos', lastName: 'Tan', mobile: '09176789012', email: 'carlos.tan@example.com', status: 'auto-removed', missedSessions: 3 },
+                    { id: 7, firstName: 'Elena', lastName: 'Torres', mobile: '09177890123', email: 'elena.torres@example.com', status: 'active', missedSessions: 0 },
+                    { id: 8, firstName: 'Miguel', lastName: 'Chavez', mobile: '09178901234', email: 'miguel.chavez@example.com', status: 'active', missedSessions: 1 },
+                ],
+                
+                machines: [
+                    { id: 1, name: 'Fresenius 4008S', location: 'Station 1 - Left', branch: 'Bacolod', status: 'available', nextAvailableSlots: ['Mon A', 'Wed B'] },
+                    { id: 2, name: 'Fresenius 5008', location: 'Station 2 - Left', branch: 'Bacolod', status: 'available', nextAvailableSlots: ['Tue C', 'Thu A'] },
+                    { id: 3, name: 'B. Braun Dialog+', location: 'Station 3 - Left', branch: 'Bacolod', status: 'available', nextAvailableSlots: ['Fri B', 'Sat C'] },
+                    { id: 4, name: 'Nikkiso DBB-EXA', location: 'Station 4 - Left', branch: 'Bacolod', status: 'unavailable', nextAvailableSlots: [] },
+                    { id: 5, name: 'Fresenius 4008S', location: 'Station 1 - Right', branch: 'Bacolod', status: 'available', nextAvailableSlots: ['Mon C', 'Wed A'] },
+                    { id: 6, name: 'Fresenius 5008', location: 'Station 2 - Right', branch: 'Bacolod', status: 'available', nextAvailableSlots: ['Tue A', 'Thu B'] },
+                    { id: 7, name: 'B. Braun Dialog+', location: 'Station 3 - Right', branch: 'Bacolod', status: 'available', nextAvailableSlots: ['Fri C', 'Sat A'] },
+                    { id: 8, name: 'Nikkiso DBB-EXA', location: 'Station 4 - Right', branch: 'Bacolod', status: 'available', nextAvailableSlots: ['Mon B', 'Wed C'] },
+                    { id: 9, name: 'Fresenius 4008S', location: 'Station 5 - Left', branch: 'Bacolod', status: 'unavailable', nextAvailableSlots: [] },
+                    { id: 10, name: 'Fresenius 5008', location: 'Station 5 - Right', branch: 'Bacolod', status: 'available', nextAvailableSlots: ['Tue B', 'Thu C'] },
+                ],
+                
+                // Computed properties
+                get filteredPatients() {
+                    if (!this.patients) return [];
+                    
+                    return this.patients.filter(patient => {
+                        // Apply search filter
+                        const searchLower = this.patientSearch.toLowerCase();
+                        const matchesSearch = !this.patientSearch || 
+                            patient.firstName.toLowerCase().includes(searchLower) ||
+                            patient.lastName.toLowerCase().includes(searchLower) ||
+                            patient.mobile.includes(this.patientSearch) ||
+                            patient.email.toLowerCase().includes(searchLower);
+                        
+                        // Apply status filter
+                        const matchesStatus = this.showActivePatients ? 
+                            (patient.status === 'active') : true;
+                        
+                        return matchesSearch && matchesStatus;
+                    });
+                },
+                
+                get filteredMachines() {
+                    if (!this.selectedDayGroup || !this.selectedShift) {
+                        return this.machines.filter(m => m.status === 'available');
+                    }
+                    
+                    // In a real app, this would check actual booking availability
+                    // For demo, we're just filtering by status and simulating some as booked
+                    return this.machines.filter(machine => {
+                        if (machine.status !== 'available') return false;
+                        
+                        // Simulate some machines as fully booked for the selected timeslot
+                        // In reality, this would check the database for existing bookings
+                        const fullyBookedMachineIds = [2, 5, 8]; // Example: machines 2, 5, 8 are fully booked
+                        return !fullyBookedMachineIds.includes(machine.id);
+                    });
+                },
+                
+                // Methods
+                initPage() {
+                    // Simulate loading data
+                    this.isLoading = true;
+                    setTimeout(() => {
+                        this.isLoading = false;
+                    }, 800);
+                },
+                
+                filterPatients() {
+                    // Trigger reactive update
+                    return;
+                },
+                
+                selectPatient(patient) {
+                    if (patient.status === 'inactive' || patient.status === 'auto-removed') {
+                        this.showToast('error', 'Cannot Select Patient', 'This patient is inactive or has been auto-removed. Please select an active patient.');
+                        return;
+                    }
+                    
+                    this.selectedPatient = patient;
+                    this.showToast('success', 'Patient Selected', `${patient.firstName} ${patient.lastName} selected for scheduling.`);
+                },
+                
+                selectDayGroup(dayGroup) {
+                    this.selectedDayGroup = dayGroup;
+                    this.selectedShift = null; // Reset shift when day group changes
+                    this.selectedMachine = null; // Reset machine when day group changes
+                },
+                
+                selectShift(shift) {
+                    if (!this.isShiftAvailable(shift)) {
+                        this.showToast('error', 'Shift Not Available', 'This shift is fully booked for the selected day group. Please choose another shift.');
+                        return;
+                    }
+                    
+                    this.selectedShift = shift;
+                    this.selectedMachine = null; // Reset machine when shift changes
+                },
+                
+                selectMachine(machine) {
+                    if (machine.status !== 'available') {
+                        this.showToast('error', 'Machine Not Available', 'This machine is currently unavailable. Please select an available machine.');
+                        return;
+                    }
+                    
+                    this.selectedMachine = machine;
+                },
+                
+                isShiftAvailable(shift) {
+                    // In a real app, this would check database for available slots
+                    // For demo, we'll simulate Shift B as fully booked for Day Group A
+                    if (this.selectedDayGroup === 'A' && shift === 'B') {
+                        return false;
+                    }
+                    
+                    return true;
+                },
+                
+                getShiftTime(shift) {
+                    switch(shift) {
+                        case 'A': return '7:00 AM - 10:00 AM';
+                        case 'B': return '11:00 AM - 2:00 PM';
+                        case 'C': return '3:00 PM - 6:00 PM';
+                        default: return '';
+                    }
+                },
+                
+                submitBooking() {
+                    // Simulate network delay and potential slot conflict
+                    this.isSubmitting = true;
+                    
+                    // 10% chance to simulate a slot taken conflict (for demo purposes)
+                    const hasConflict = Math.random() < 0.1;
+                    
+                    setTimeout(() => {
+                        if (hasConflict) {
+                            // Show slot taken modal with alternative options
+                            this.alternativeSlots = [
+                                { id: 1, machineId: 3, location: 'Station 3 - Left', shift: this.selectedShift, dayGroup: this.selectedDayGroup },
+                                { id: 2, machineId: 6, location: 'Station 2 - Right', shift: this.selectedShift, dayGroup: this.selectedDayGroup },
+                                { id: 3, machineId: 10, location: 'Station 5 - Right', shift: this.selectedShift, dayGroup: this.selectedDayGroup }
+                            ];
+                            this.showSlotTakenModal = true;
+                            this.isSubmitting = false;
+                        } else {
+                            // Success
+                            this.showToast('success', 'Booking Confirmed', 
+                                `${this.selectedPatient.firstName} ${this.selectedPatient.lastName} has been scheduled for Day Group ${this.selectedDayGroup}, Shift ${this.selectedShift} on Machine ${this.selectedMachine.id}.`);
+                            
+                            // Reset form after success
+                            setTimeout(() => {
+                                this.resetForm();
+                                // Redirect to dashboard (in a real app)
+                                // window.location.href = 'dashboard.html';
+                            }, 2000);
+                        }
+                    }, 1500);
+                },
+                
+                selectAlternativeSlot(alternative) {
+                    // Find the machine in our list
+                    const machine = this.machines.find(m => m.id === alternative.machineId);
+                    if (machine) {
+                        this.selectedMachine = machine;
+                        this.showSlotTakenModal = false;
+                        this.showToast('success', 'Alternative Selected', `Machine ${machine.id} selected as alternative.`);
+                    }
+                },
+                
+                resetForm() {
+                    this.currentStep = 1;
+                    this.selectedPatient = null;
+                    this.selectedDayGroup = null;
+                    this.selectedShift = null;
+                    this.selectedMachine = null;
+                    this.bookingNotes = '';
+                    this.isSubmitting = false;
+                },
+                
+                showToast(type, title, message) {
+                    const id = ++this.toastIdCounter;
+                    this.toasts.push({ id, type, title, message });
+                    
+                    // Auto remove after 5 seconds
+                    setTimeout(() => {
+                        this.removeToast(id);
+                    }, 5000);
+                },
+                
+                removeToast(id) {
+                    const index = this.toasts.findIndex(t => t.id === id);
+                    if (index !== -1) {
+                        // Add fade-out class before removing
+                        const toastElement = document.querySelector(`[data-toast-id="${id}"]`);
+                        if (toastElement) {
+                            toastElement.classList.add('fade-out');
+                            setTimeout(() => {
+                                this.toasts.splice(index, 1);
+                            }, 500);
+                        } else {
+                            this.toasts.splice(index, 1);
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</body>
+</html>

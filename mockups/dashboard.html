@@ -3,487 +3,2086 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envivo Scheduling Dashboard - 30 Machines</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Envivo Scheduling System - Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        'available': '#10B981',
-                        'scheduled': '#3B82F6',
-                        'unavailable': '#EF4444',
-                        'maintenance': '#F59E0B'
-                    }
-                }
+    <style>
+        /* ====== CSS RESET & BASE ====== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            /* Primary Colors - From URD */
+            --envivo-teal: #2D7A78;
+            --envivo-pink: #E86A92;
+            --envivo-cream: #F8F1E5;
+            
+            /* Status Colors - From URD */
+            --status-available: #28A745;
+            --status-scheduled: #0D6EFD;
+            --status-unavailable: #DC3545;
+            --status-warning: #FFC107;
+            --status-complete: #6F42C1;
+            --status-manual-removal: #8B4513;
+            --status-notice: #FFF3CD;
+            
+            /* Neutral Colors */
+            --white: #FFFFFF;
+            --gray-100: #f8f9fa;
+            --gray-200: #e9ecef;
+            --gray-300: #dee2e6;
+            --gray-400: #ced4da;
+            --gray-500: #adb5bd;
+            --gray-600: #6c757d;
+            --gray-700: #495057;
+            --gray-800: #343a40;
+            --gray-900: #212529;
+            
+            /* Spacing */
+            --spacing-xs: 0.25rem;
+            --spacing-sm: 0.5rem;
+            --spacing-md: 1rem;
+            --spacing-lg: 1.5rem;
+            --spacing-xl: 2rem;
+            --spacing-xxl: 3rem;
+            
+            /* Border Radius */
+            --border-radius-sm: 0.25rem;
+            --border-radius-md: 0.375rem;
+            --border-radius-lg: 0.5rem;
+            --border-radius-xl: 1rem;
+            
+            /* Shadows */
+            --shadow-sm: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+            --shadow-md: 0 0.5rem 1rem rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 1rem 2rem rgba(0, 0, 0, 0.15);
+            
+            /* Fonts - From URD */
+            --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            --font-heading: 'Lexend', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        }
+
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            line-height: 1.5;
+            color: var(--gray-800);
+            background-color: var(--envivo-cream);
+            min-height: 100vh;
+        }
+
+        h1, h2, h3, h4, h5, h6 {
+            font-family: var(--font-heading);
+            font-weight: 500;
+        }
+
+        /* ====== LAYOUT & CONTAINERS ====== */
+        .app-container {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        /* ====== SIDEBAR NAVIGATION ====== */
+        .sidebar {
+            width: 250px;
+            background-color: var(--envivo-teal);
+            color: var(--white);
+            padding: var(--spacing-lg) 0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: var(--shadow-md);
+            z-index: 100;
+        }
+
+        .logo-container {
+            padding: 0 var(--spacing-lg) var(--spacing-xl);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .logo-icon {
+            font-size: 1.75rem;
+        }
+
+        .logo-text {
+            font-family: var(--font-heading);
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+
+        .nav-menu {
+            flex: 1;
+            padding: 0 var(--spacing-lg);
+        }
+
+        .nav-list {
+            list-style: none;
+        }
+
+        .nav-item {
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-md) var(--spacing-lg);
+            color: rgba(255, 255, 255, 0.85);
+            text-decoration: none;
+            border-radius: var(--border-radius-md);
+            transition: all 0.2s ease;
+            font-size: 15px;
+        }
+
+        .nav-link:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--white);
+        }
+
+        .nav-link.active {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: var(--white);
+            font-weight: 500;
+        }
+
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 1.125rem;
+        }
+
+        .user-info {
+            padding: var(--spacing-lg);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--envivo-pink);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .user-details {
+            flex: 1;
+        }
+
+        .user-name {
+            font-weight: 500;
+            font-size: 15px;
+        }
+
+        .user-role {
+            font-size: 13px;
+            opacity: 0.8;
+        }
+
+        /* ====== MAIN CONTENT AREA ====== */
+        .main-content {
+            flex: 1;
+            padding: var(--spacing-lg);
+            overflow-y: auto;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid var(--gray-300);
+        }
+
+        .page-title {
+            font-size: 1.75rem;
+            color: var(--envivo-teal);
+        }
+
+        .page-actions {
+            display: flex;
+            gap: var(--spacing-md);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            padding: var(--spacing-md) var(--spacing-lg);
+            border: none;
+            border-radius: var(--border-radius-md);
+            font-family: var(--font-body);
+            font-size: 15px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background-color: var(--envivo-pink);
+            color: var(--white);
+        }
+
+        .btn-primary:hover {
+            background-color: #d45a7d;
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-secondary {
+            background-color: var(--gray-200);
+            color: var(--gray-800);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--gray-300);
+        }
+
+        .btn-icon {
+            font-size: 1rem;
+        }
+
+        /* ====== DASHBOARD WIDGETS ====== */
+        .dashboard-widgets {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+            margin-bottom: var(--spacing-xl);
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-widgets {
+                grid-template-columns: 1fr;
             }
         }
-    </script>
-    <style>
-        .machine-row:nth-child(even) {
-            background-color: #f9fafb;
+
+        .widget {
+            background-color: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+            border: 1px solid var(--gray-200);
         }
-        .slot-cell {
-            min-height: 60px;
+
+        .widget-header {
+            padding: var(--spacing-lg);
+            border-bottom: 1px solid var(--gray-200);
+            background-color: var(--gray-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .widget-title {
+            font-size: 1.25rem;
+            color: var(--gray-800);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+        }
+
+        .widget-icon {
+            color: var(--envivo-teal);
+        }
+
+        .widget-actions {
+            display: flex;
+            gap: var(--spacing-sm);
+        }
+
+        .widget-content {
+            padding: var(--spacing-lg);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--gray-600);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--gray-400);
+        }
+
+        .empty-text {
+            font-size: 1.125rem;
+            margin-bottom: var(--spacing-md);
+        }
+
+        /* ====== AUTO-REMOVAL WIDGET ====== */
+        .removal-list {
+            list-style: none;
+        }
+
+        .removal-item {
+            padding: var(--spacing-md);
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .removal-item:last-child {
+            border-bottom: none;
+        }
+
+        .removal-details {
+            flex: 1;
+        }
+
+        .removal-patient {
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .removal-meta {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            display: flex;
+            gap: var(--spacing-md);
+        }
+
+        .removal-reason {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .removal-type-auto {
+            color: var(--status-unavailable);
+        }
+
+        .removal-type-manual {
+            color: var(--status-manual-removal);
+        }
+
+        /* ====== SCHEDULE GRID ====== */
+        .schedule-section {
+            margin-bottom: var(--spacing-xxl);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            color: var(--envivo-teal);
+        }
+
+        .date-navigation {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+
+        .date-range {
+            font-weight: 500;
+            color: var(--gray-700);
+            min-width: 200px;
+            text-align: center;
+        }
+
+        .schedule-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-lg);
+            background-color: var(--white);
+            padding: var(--spacing-md);
+            border-radius: var(--border-radius-md);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .legend {
+            display: flex;
+            gap: var(--spacing-lg);
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
+            font-size: 0.875rem;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: var(--border-radius-sm);
+        }
+
+        .legend-available {
+            background-color: var(--status-available);
+        }
+
+        .legend-scheduled {
+            background-color: var(--status-scheduled);
+        }
+
+        .legend-unavailable {
+            background-color: var(--status-unavailable);
+        }
+
+        .legend-checked-in {
+            background-color: var(--status-complete);
+        }
+
+        /* FIXED SCHEDULE GRID - SEPARATE SLOTS FOR EACH SHIFT */
+        .schedule-grid-container {
+            background-color: var(--white);
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow-x: auto;
+            border: 1px solid var(--gray-200);
+        }
+
+        .schedule-grid {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 1200px;
+        }
+
+        .schedule-header {
+            background-color: var(--gray-100);
+            border-bottom: 2px solid var(--gray-300);
+        }
+
+        .schedule-header th {
+            padding: var(--spacing-md);
+            text-align: center;
+            font-weight: 600;
+            color: var(--gray-700);
+            border-right: 1px solid var(--gray-300);
+            position: relative;
+        }
+
+        .schedule-header th:last-child {
+            border-right: none;
+        }
+
+        .day-header {
+            font-size: 1.125rem;
+            color: var(--envivo-teal);
+            border-bottom: 2px solid var(--gray-300) !important;
+        }
+
+        .shift-header {
+            font-size: 0.875rem;
+            color: var(--gray-600);
+            font-weight: 500;
+            padding: var(--spacing-sm) !important;
+            background-color: var(--gray-50);
+        }
+
+        .machine-row {
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .machine-row:last-child {
+            border-bottom: none;
+        }
+
+        .machine-label {
+            padding: var(--spacing-md);
+            text-align: center;
+            font-weight: 600;
+            color: var(--gray-800);
+            background-color: var(--gray-50);
+            border-right: 1px solid var(--gray-300);
+            width: 120px;
+            position: sticky;
+            left: 0;
+            z-index: 10;
+        }
+
+        /* SEPARATE SLOTS FOR EACH SHIFT */
+        .time-slot {
+            width: 60px; /* Fixed width for each shift slot */
+            height: 70px;
+            padding: var(--spacing-xs);
+            border-right: 1px solid var(--gray-200);
+            border-bottom: 1px solid var(--gray-200);
+            position: relative;
+            cursor: pointer;
             transition: all 0.2s ease;
         }
-        .slot-cell:hover {
-            transform: scale(1.02);
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+
+        .time-slot:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: var(--shadow-md);
         }
-        .machine-header {
-            background-color: #eff6ff;
+
+        .slot-available {
+            background-color: var(--status-available);
         }
-        .shift-header {
-            background-color: #f3f4f6;
+
+        .slot-scheduled {
+            background-color: var(--status-scheduled);
         }
-        .auto-removal-row:hover {
-            background-color: #fef3c7;
+
+        .slot-unavailable {
+            background-color: var(--status-unavailable);
+        }
+
+        .slot-checked-in {
+            background-color: var(--status-complete);
+        }
+
+        .slot-late {
+            background-color: var(--status-warning);
+        }
+
+        .slot-content {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--white);
+            font-weight: 600;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            font-size: 0.75rem;
+        }
+
+        .patient-initials {
+            font-size: 0.875rem;
+            margin-bottom: 2px;
+        }
+
+        .slot-status {
+            font-size: 0.65rem;
+            opacity: 0.9;
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        /* ====== TOOLTIPS & MODALS ====== */
+        .tooltip {
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: var(--gray-800);
+            color: var(--white);
+            padding: var(--spacing-sm) var(--spacing-md);
+            border-radius: var(--border-radius-sm);
+            font-size: 0.875rem;
+            white-space: nowrap;
+            z-index: 1000;
+            box-shadow: var(--shadow-md);
+            display: none;
+            min-width: 200px;
+        }
+
+        .time-slot:hover .tooltip {
+            display: block;
+        }
+
+        .tooltip::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: transparent transparent var(--gray-800) transparent;
+        }
+
+        /* ====== BADGES & STATUS INDICATORS ====== */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            padding: var(--spacing-xs) var(--spacing-sm);
+            border-radius: 50px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge-success {
+            background-color: rgba(40, 167, 69, 0.1);
+            color: var(--status-available);
+            border: 1px solid rgba(40, 167, 69, 0.2);
+        }
+
+        .badge-info {
+            background-color: rgba(13, 110, 253, 0.1);
+            color: var(--status-scheduled);
+            border: 1px solid rgba(13, 110, 253, 0.2);
+        }
+
+        .badge-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            color: var(--status-unavailable);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+        }
+
+        .badge-warning {
+            background-color: rgba(255, 193, 7, 0.1);
+            color: var(--status-warning);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+        }
+
+        .badge-purple {
+            background-color: rgba(111, 66, 193, 0.1);
+            color: var(--status-complete);
+            border: 1px solid rgba(111, 66, 193, 0.2);
+        }
+
+        /* ====== LOADING STATES ====== */
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--gray-300);
+            border-top-color: var(--envivo-teal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .skeleton {
+            background-color: var(--gray-200);
+            border-radius: var(--border-radius-sm);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .skeleton-text {
+            height: 1rem;
+            width: 100%;
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .skeleton-text:last-child {
+            margin-bottom: 0;
+            width: 70%;
+        }
+
+        /* ====== UTILITY CLASSES ====== */
+        .text-center {
+            text-align: center;
+        }
+
+        .text-muted {
+            color: var(--gray-600);
+        }
+
+        .font-sm {
+            font-size: 0.875rem;
+        }
+
+        .mb-1 {
+            margin-bottom: var(--spacing-sm);
+        }
+
+        .mb-2 {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .mb-3 {
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .mt-2 {
+            margin-top: var(--spacing-md);
+        }
+
+        .mt-3 {
+            margin-top: var(--spacing-lg);
+        }
+
+        .d-flex {
+            display: flex;
+        }
+
+        .align-items-center {
+            align-items: center;
+        }
+
+        .justify-content-between {
+            justify-content: space-between;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        /* ====== RESPONSIVE ADJUSTMENTS ====== */
+        @media (max-width: 992px) {
+            .app-container {
+                flex-direction: column;
+            }
+            
+            .sidebar {
+                width: 100%;
+                padding: var(--spacing-md) 0;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .nav-menu.active {
+                display: block;
+            }
+            
+            .mobile-menu-toggle {
+                display: block;
+                position: absolute;
+                right: var(--spacing-lg);
+                top: var(--spacing-md);
+                background: none;
+                border: none;
+                color: var(--white);
+                font-size: 1.5rem;
+                cursor: pointer;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .dashboard-widgets {
+                grid-template-columns: 1fr;
+            }
+            
+            .schedule-controls {
+                flex-direction: column;
+                gap: var(--spacing-md);
+                align-items: flex-start;
+            }
+            
+            .legend {
+                flex-wrap: wrap;
+            }
         }
     </style>
 </head>
-<body class="bg-gray-50">
-    <!-- Header -->
-    <header class="bg-white shadow">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-            <div>
-                <h1 class="text-2xl font-bold text-gray-900">Envivo Dialysis Scheduling System</h1>
-                <p class="text-sm text-gray-500">Bacolod Branch - 30 Machines</p>
-            </div>
-            <div class="flex items-center space-x-4">
-                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
-                    <i class="fas fa-sync-alt mr-1"></i>Live Status
-                </span>
-                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
-                    <i class="fas fa-user mr-2"></i>Admin
-                </button>
-            </div>
-        </div>
-    </header>
-
-    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-        <!-- Dashboard Stats -->
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
-                <div class="flex items-center">
-                    <div class="rounded-full bg-blue-100 p-3 mr-4">
-                        <i class="fas fa-calendar-check text-blue-500 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Scheduled Today</p>
-                        <p class="text-2xl font-bold">186</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
-                <div class="flex items-center">
-                    <div class="rounded-full bg-green-100 p-3 mr-4">
-                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Available Slots</p>
-                        <p class="text-2xl font-bold">90</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
-                <div class="flex items-center">
-                    <div class="rounded-full bg-red-100 p-3 mr-4">
-                        <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Unscheduled Patients</p>
-                        <p class="text-2xl font-bold">12</p>
-                    </div>
-                </div>
-            </div>
-            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
-                <div class="flex items-center">
-                    <div class="rounded-full bg-yellow-100 p-3 mr-4">
-                        <i class="fas fa-tools text-yellow-500 text-xl"></i>
-                    </div>
-                    <div>
-                        <p class="text-gray-500 text-sm">Maintenance</p>
-                        <p class="text-2xl font-bold">4</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Auto-removal Section -->
-        <div class="bg-white rounded-lg shadow mb-8">
-            <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                <h2 class="text-lg font-medium text-gray-900">Auto-Removed Patients (Last 30 Days)</h2>
-                <button class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md">
-                    View All
-                </button>
-            </div>
-            <div class="p-6">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead class="bg-gray-50">
-                        <tr>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Name</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Removal Date</th>
-                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <tr class="auto-removal-row">
-                            <td class="px-6 py-4 whitespace-nowrap">Juan Dela Cruz</td>
-                            <td class="px-6 py-4 whitespace-nowrap">1985-03-15</td>
-                            <td class="px-6 py-4 whitespace-nowrap">2026-07-20</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">3 Missed Sessions</span>
-                            </td>
-                        </tr>
-                        <tr class="auto-removal-row">
-                            <td class="px-6 py-4 whitespace-nowrap">Maria Santos</td>
-                            <td class="px-6 py-4 whitespace-nowrap">1990-11-22</td>
-                            <td class="px-6 py-4 whitespace-nowrap">2026-07-18</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">3 Missed Sessions</span>
-                            </td>
-                        </tr>
-                        <tr class="auto-removal-row">
-                            <td class="px-6 py-4 whitespace-nowrap">Pedro Reyes</td>
-                            <td class="px-6 py-4 whitespace-nowrap">1978-06-30</td>
-                            <td class="px-6 py-4 whitespace-nowrap">2026-07-15</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">3 Missed Sessions</span>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- Schedule Overview -->
-        <div class="bg-white rounded-lg shadow mb-8">
-            <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
-                <h2 class="text-lg font-medium text-gray-900">Schedule Overview - 30 Machines</h2>
-                <div class="flex space-x-2">
-                    <button class="px-3 py-1 bg-blue-500 text-white rounded-md text-sm flex items-center">
-                        <i class="fas fa-filter mr-1"></i> Filter
-                    </button>
-                    <button class="px-3 py-1 border border-gray-300 rounded-md text-sm flex items-center">
-                        <i class="fas fa-download mr-1"></i> Export
-                    </button>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation -->
+        <aside class="sidebar">
+            <div class="logo-container">
+                <div class="logo">
+                    <div class="logo-icon">🩺</div>
+                    <div class="logo-text">Envivo</div>
                 </div>
             </div>
             
-            <!-- Scrollable Schedule -->
-            <div class="overflow-x-auto">
-                <table class="min-w-full divide-y divide-gray-200">
-                    <thead>
-                        <tr>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Machine</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day A (Mon-Wed-Fri)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day B (Tue-Thu-Sat)</th>
-                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day C (Sun)</th>
-                        </tr>
-                    </thead>
-                    <tbody class="bg-white divide-y divide-gray-200">
-                        <!-- Machine Row - 1 -->
-                        <tr class="machine-row">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 1</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <!-- Slot 1 -->
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <!-- Slot 2 - Scheduled -->
-                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
-                                        <span class="text-sm font-medium">JD</span>
-                                        <span class="text-xs text-gray-500">John Doe</span>
-                                    </div>
-                                    <!-- Slot 3 - Available -->
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <!-- Slot 1 - Unavailable -->
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-red-100 border-red-300">
-                                        <span class="text-sm text-gray-500">Not Available</span>
-                                    </div>
-                                    <!-- Slot 2 - Scheduled -->
-                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
-                                        <span class="text-sm font-medium">MR</span>
-                                        <span class="text-xs text-gray-500">Maria Reyes</span>
-                                    </div>
-                                    <!-- Slot 3 - Available -->
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <!-- Slot 1 - Maintenance -->
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-yellow-100 border-yellow-300">
-                                        <span class="text-sm text-gray-500">Maintenance</span>
-                                    </div>
-                                    <!-- Slot 2 - Scheduled -->
-                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
-                                        <span class="text-sm font-medium">AJ</span>
-                                        <span class="text-xs text-gray-500">Ana Jimenez</span>
-                                    </div>
-                                    <!-- Slot 3 - Available -->
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Machine Row - 2 -->
-                        <tr class="machine-row">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 2</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
-                                        <span class="text-sm font-medium">LC</span>
-                                        <span class="text-xs text-gray-500">Luis Castillo</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Machine Row - 3 -->
-                        <tr class="machine-row">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 3</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
-                                        <span class="text-sm font-medium">EP</span>
-                                        <span class="text-xs text-gray-500">Elena Ponce</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Machine Row - 4 -->
-                        <tr class="machine-row">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 4</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                        
-                        <!-- Machine Row - 5 -->
-                        <tr class="machine-row">
-                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 5</td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap">
-                                <div class="grid grid-cols-3 gap-2">
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
-                                        <span class="text-sm text-gray-500">Available</span>
-                                    </div>
-                                </div>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+            <nav class="nav-menu">
+                <ul class="nav-list">
+                    <li class="nav-item">
+                        <a href="#" class="nav-link active">
+                            <i class="nav-icon fas fa-home"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-user-injured"></i>
+                            <span>Patient Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="sign-in-and-out.html" class="nav-link">
+                            <i class="nav-icon fas fa-calendar-check"></i>
+                            <span>Daily Check-In & Sign-Out</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="booking.html" class="nav-link">
+                            <i class="nav-icon fas fa-calendar-plus"></i>
+                            <span>Manual Booking</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-cogs"></i>
+                            <span>Machine Management</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-history"></i>
+                            <span>Audit Log</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="#" class="nav-link">
+                            <i class="nav-icon fas fa-question-circle"></i>
+                            <span>Help & Support</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            
+            <div class="user-info">
+                <div class="user-avatar">LD</div>
+                <div class="user-details">
+                    <div class="user-name">Lara Domingo</div>
+                    <div class="user-role">Receptionist</div>
+                </div>
+                <a href="#" class="text-muted">
+                    <i class="fas fa-sign-out-alt"></i>
+                </a>
+            </div>
+        </aside>
+        
+        <!-- Main Content Area -->
+        <main class="main-content">
+            <!-- Header -->
+            <div class="header">
+                <h1 class="page-title">Dashboard</h1>
+                <div class="page-actions">
+                    <a href="#" class="btn btn-secondary">
+                        <i class="btn-icon fas fa-print"></i>
+                        <span>Print Schedule</span>
+                    </a>
+                    <a href="#" class="btn btn-primary">
+                        <i class="btn-icon fas fa-plus"></i>
+                        <span>New Booking</span>
+                    </a>
+                </div>
             </div>
             
-            <!-- Pagination -->
-            <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
-                <p class="text-sm text-gray-500">Showing 1 to 5 of 30 machines</p>
-                <div class="flex space-x-2">
-                    <button class="px-3 py-1 border border-gray-300 rounded-md text-sm">Previous</button>
-                    <button class="px-3 py-1 bg-blue-500 text-white rounded-md text-sm">Next</button>
+            <!-- Dashboard Widgets -->
+            <div class="dashboard-widgets">
+                <!-- Auto-Removal Widget -->
+                <div class="widget">
+                    <div class="widget-header">
+                        <h2 class="widget-title">
+                            <i class="widget-icon fas fa-exclamation-triangle"></i>
+                            <span>Auto-Removal Notifications</span>
+                        </h2>
+                        <div class="widget-actions">
+                            <span class="badge badge-danger">3 New</span>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <ul class="removal-list">
+                            <li class="removal-item">
+                                <div class="removal-details">
+                                    <div class="removal-patient">Maria Santos</div>
+                                    <div class="removal-meta">
+                                        <span class="removal-date">Removed: Feb 2, 2026</span>
+                                        <span class="removal-reason removal-type-auto">
+                                            <i class="fas fa-robot"></i>
+                                            <span>3 missed sessions</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm re-add-btn" data-patient="Maria Santos">
+                                    Re-add
+                                </button>
+                            </li>
+                            <li class="removal-item">
+                                <div class="removal-details">
+                                    <div class="removal-patient">Juan Dela Cruz</div>
+                                    <div class="removal-meta">
+                                        <span class="removal-date">Removed: Feb 1, 2026</span>
+                                        <span class="removal-reason removal-type-auto">
+                                            <i class="fas fa-robot"></i>
+                                            <span>3 missed sessions</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm re-add-btn" data-patient="Juan Dela Cruz">
+                                    Re-add
+                                </button>
+                            </li>
+                            <li class="removal-item">
+                                <div class="removal-details">
+                                    <div class="removal-patient">Carlos Reyes</div>
+                                    <div class="removal-meta">
+                                        <span class="removal-date">Removed: Jan 30, 2026</span>
+                                        <span class="removal-reason removal-type-auto">
+                                            <i class="fas fa-robot"></i>
+                                            <span>3 missed sessions</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm re-add-btn" data-patient="Carlos Reyes">
+                                    Re-add
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="empty-state" id="empty-auto-removal" style="display: none;">
+                            <div class="empty-icon">
+                                <i class="far fa-check-circle"></i>
+                            </div>
+                            <div class="empty-text">No patients auto-removed.</div>
+                            <p class="text-muted font-sm">Patients are auto-removed after 3 missed sessions.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Manual Removal Widget -->
+                <div class="widget">
+                    <div class="widget-header">
+                        <h2 class="widget-title">
+                            <i class="widget-icon fas fa-user-slash"></i>
+                            <span>Manual Removals</span>
+                        </h2>
+                        <div class="widget-actions">
+                            <span class="badge" style="background-color: rgba(139, 69, 19, 0.1); color: var(--status-manual-removal); border: 1px solid rgba(139, 69, 19, 0.2);">2</span>
+                        </div>
+                    </div>
+                    <div class="widget-content">
+                        <ul class="removal-list">
+                            <li class="removal-item">
+                                <div class="removal-details">
+                                    <div class="removal-patient">Ana Lopez</div>
+                                    <div class="removal-meta">
+                                        <span class="removal-date">Removed: Feb 3, 2026</span>
+                                        <span class="removal-reason removal-type-manual">
+                                            <i class="fas fa-user-edit"></i>
+                                            <span>Moved to other Clinics</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm re-add-btn" data-patient="Ana Lopez">
+                                    Re-add
+                                </button>
+                            </li>
+                            <li class="removal-item">
+                                <div class="removal-details">
+                                    <div class="removal-patient">Roberto Garcia</div>
+                                    <div class="removal-meta">
+                                        <span class="removal-date">Removed: Jan 28, 2026</span>
+                                        <span class="removal-reason removal-type-manual">
+                                            <i class="fas fa-user-edit"></i>
+                                            <span>Deceased</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm re-add-btn" data-patient="Roberto Garcia">
+                                    Re-add
+                                </button>
+                            </li>
+                        </ul>
+                        <div class="empty-state" id="empty-manual-removal" style="display: none;">
+                            <div class="empty-icon">
+                                <i class="far fa-check-circle"></i>
+                            </div>
+                            <div class="empty-text">No manual removals.</div>
+                            <p class="text-muted font-sm">Manual removals are for exceptional cases like transfers or death.</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
+            
+            <!-- Schedule Grid Section -->
+            <div class="schedule-section">
+                <div class="section-header">
+                    <h2 class="section-title">Weekly Schedule</h2>
+                    <div class="date-navigation">
+                        <button class="btn btn-secondary" id="prev-week">
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <div class="date-range" id="current-week">Feb 2 - Feb 8, 2026</div>
+                        <button class="btn btn-secondary" id="next-week">
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="schedule-controls">
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-color legend-available"></div>
+                            <span>Available</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-scheduled"></div>
+                            <span>Scheduled</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-unavailable"></div>
+                            <span>Unavailable</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-color legend-checked-in"></div>
+                            <span>Checked In</span>
+                        </div>
+                    </div>
+                    <div>
+                        <span class="badge badge-info">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Hover over slots for details</span>
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="schedule-grid-container">
+                    <table class="schedule-grid">
+                        <thead class="schedule-header">
+                            <tr>
+                                <th rowspan="2" class="machine-label-header">Machine</th>
+                                <!-- Monday -->
+                                <th colspan="3" class="day-header">Mon<br>Feb 2</th>
+                                <!-- Tuesday -->
+                                <th colspan="3" class="day-header">Tue<br>Feb 3</th>
+                                <!-- Wednesday -->
+                                <th colspan="3" class="day-header">Wed<br>Feb 4</th>
+                                <!-- Thursday -->
+                                <th colspan="3" class="day-header">Thu<br>Feb 5</th>
+                                <!-- Friday -->
+                                <th colspan="3" class="day-header">Fri<br>Feb 6</th>
+                                <!-- Saturday -->
+                                <th colspan="3" class="day-header">Sat<br>Feb 7</th>
+                                <!-- Sunday -->
+                                <th colspan="3" class="day-header">Sun<br>Feb 8</th>
+                            </tr>
+                            <tr>
+                                <!-- Monday shifts -->
+                                <th class="shift-header">A<br>6-10AM</th>
+                                <th class="shift-header">B<br>10-2PM</th>
+                                <th class="shift-header">C<br>2-6PM</th>
+                                <!-- Tuesday shifts -->
+                                <th class="shift-header">A<br>6-10AM</th>
+                                <th class="shift-header">B<br>10-2PM</th>
+                                <th class="shift-header">C<br>2-6PM</th>
+                                <!-- Wednesday shifts -->
+                                <th class="shift-header">A<br>6-10AM</th>
+                                <th class="shift-header">B<br>10-2PM</th>
+                                <th class="shift-header">C<br>2-6PM</th>
+                                <!-- Thursday shifts -->
+                                <th class="shift-header">A<br>6-10AM</th>
+                                <th class="shift-header">B<br>10-2PM</th>
+                                <th class="shift-header">C<br>2-6PM</th>
+                                <!-- Friday shifts -->
+                                <th class="shift-header">A<br>6-10AM</th>
+                                <th class="shift-header">B<br>10-2PM</th>
+                                <th class="shift-header">C<br>2-6PM</th>
+                                <!-- Saturday shifts -->
+                                <th class="shift-header">A<br>6-10AM</th>
+                                <th class="shift-header">B<br>10-2PM</th>
+                                <th class="shift-header">C<br>2-6PM</th>
+                                <!-- Sunday shifts -->
+                                <th class="shift-header" style="background-color: var(--gray-100);">-</th>
+                                <th class="shift-header" style="background-color: var(--gray-100);">-</th>
+                                <th class="shift-header" style="background-color: var(--gray-100);">-</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Machine 1 -->
+                            <tr class="machine-row">
+                                <td class="machine-label">Machine 1</td>
+                                
+                                <!-- Monday -->
+                                <td class="time-slot slot-scheduled" data-patient="Jose R." data-shift="A" data-day="Mon">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">JR</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Jose Reyes</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 1<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="B" data-day="Mon">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 1, Shift B<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-unavailable" data-shift="C" data-day="Mon">
+                                    <div class="slot-content">
+                                        <i class="fas fa-times"></i>
+                                        <div class="slot-status">Unavailable</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Machine Unavailable</strong><br>
+                                        Machine: 1, Shift C<br>
+                                        Reason: Maintenance
+                                    </div>
+                                </td>
+                                
+                                <!-- Tuesday -->
+                                <td class="time-slot slot-available" data-shift="A" data-day="Tue">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 1, Shift A<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Maria S." data-shift="B" data-day="Tue">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">MS</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Maria Santos</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 1<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Tue">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 1, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Wednesday -->
+                                <td class="time-slot slot-checked-in" data-patient="Ana L." data-shift="A" data-day="Wed">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">AL</div>
+                                        <div class="slot-status">Checked In</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Ana Lopez</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 1<br>
+                                        Status: Checked In at 6:15AM
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="B" data-day="Wed">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 1, Shift B<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Juan D." data-shift="C" data-day="Wed">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">JD</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Juan Dela Cruz</strong><br>
+                                        Shift: C (2PM-6PM)<br>
+                                        Machine: 1<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                
+                                <!-- Thursday -->
+                                <td class="time-slot slot-unavailable" data-shift="A" data-day="Thu">
+                                    <div class="slot-content">
+                                        <i class="fas fa-times"></i>
+                                        <div class="slot-status">Unavailable</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Machine Unavailable</strong><br>
+                                        Machine: 1, Shift A<br>
+                                        Reason: Maintenance
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-unavailable" data-shift="B" data-day="Thu">
+                                    <div class="slot-content">
+                                        <i class="fas fa-times"></i>
+                                        <div class="slot-status">Unavailable</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Machine Unavailable</strong><br>
+                                        Machine: 1, Shift B<br>
+                                        Reason: Maintenance
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-unavailable" data-shift="C" data-day="Thu">
+                                    <div class="slot-content">
+                                        <i class="fas fa-times"></i>
+                                        <div class="slot-status">Unavailable</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Machine Unavailable</strong><br>
+                                        Machine: 1, Shift C<br>
+                                        Reason: Maintenance
+                                    </div>
+                                </td>
+                                
+                                <!-- Friday -->
+                                <td class="time-slot slot-scheduled" data-patient="Carlos R." data-shift="A" data-day="Fri">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">CR</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Carlos Reyes</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 1<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="B" data-day="Fri">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 1, Shift B<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-late" data-patient="Elena T." data-shift="C" data-day="Fri">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">ET</div>
+                                        <div class="slot-status">Late</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Elena Torres</strong><br>
+                                        Shift: C (2PM-6PM)<br>
+                                        Machine: 1<br>
+                                        Status: Checked In Late at 2:20PM
+                                    </div>
+                                </td>
+                                
+                                <!-- Saturday -->
+                                <td class="time-slot slot-available" data-shift="A" data-day="Sat">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 1, Shift A<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Luis M." data-shift="B" data-day="Sat">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">LM</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Luis Mendoza</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 1<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Sat">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 1, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Sunday (No sessions) -->
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Machine 2 -->
+                            <tr class="machine-row">
+                                <td class="machine-label">Machine 2</td>
+                                
+                                <!-- Monday -->
+                                <td class="time-slot slot-available" data-shift="A" data-day="Mon">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 2, Shift A<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Pedro G." data-shift="B" data-day="Mon">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">PG</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Pedro Gomez</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 2<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Mon">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 2, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Tuesday -->
+                                <td class="time-slot slot-scheduled" data-patient="Sofia R." data-shift="A" data-day="Tue">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">SR</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Sofia Reyes</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 2<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-checked-in" data-patient="Miguel T." data-shift="B" data-day="Tue">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">MT</div>
+                                        <div class="slot-status">Checked In</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Miguel Torres</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 2<br>
+                                        Status: Checked In at 10:05AM
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Tue">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 2, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Wednesday -->
+                                <td class="time-slot slot-available" data-shift="A" data-day="Wed">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 2, Shift A<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Roberto G." data-shift="B" data-day="Wed">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">RG</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Roberto Garcia</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 2<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-unavailable" data-shift="C" data-day="Wed">
+                                    <div class="slot-content">
+                                        <i class="fas fa-times"></i>
+                                        <div class="slot-status">Unavailable</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Machine Unavailable</strong><br>
+                                        Machine: 2, Shift C<br>
+                                        Reason: Repair
+                                    </div>
+                                </td>
+                                
+                                <!-- Thursday -->
+                                <td class="time-slot slot-scheduled" data-patient="Carmen L." data-shift="A" data-day="Thu">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">CL</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Carmen Lopez</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 2<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="B" data-day="Thu">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 2, Shift B<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Thu">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 2, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Friday -->
+                                <td class="time-slot slot-unavailable" data-shift="A" data-day="Fri">
+                                    <div class="slot-content">
+                                        <i class="fas fa-times"></i>
+                                        <div class="slot-status">Unavailable</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Machine Unavailable</strong><br>
+                                        Machine: 2, Shift A<br>
+                                        Reason: Cleaning
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-unavailable" data-shift="B" data-day="Fri">
+                                    <div class="slot-content">
+                                        <i class="fas fa-times"></i>
+                                        <div class="slot-status">Unavailable</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Machine Unavailable</strong><br>
+                                        Machine: 2, Shift B<br>
+                                        Reason: Cleaning
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-unavailable" data-shift="C" data-day="Fri">
+                                    <div class="slot-content">
+                                        <i class="fas fa-times"></i>
+                                        <div class="slot-status">Unavailable</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Machine Unavailable</strong><br>
+                                        Machine: 2, Shift C<br>
+                                        Reason: Cleaning
+                                    </div>
+                                </td>
+                                
+                                <!-- Saturday -->
+                                <td class="time-slot slot-available" data-shift="A" data-day="Sat">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 2, Shift A<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Isabel M." data-shift="B" data-day="Sat">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">IM</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Isabel Mendoza</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 2<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Sat">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 2, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Sunday (No sessions) -->
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                            </tr>
+                            
+                            <!-- Machine 3 -->
+                            <tr class="machine-row">
+                                <td class="machine-label">Machine 3</td>
+                                
+                                <!-- Monday -->
+                                <td class="time-slot slot-scheduled" data-patient="Antonio R." data-shift="A" data-day="Mon">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">AR</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Antonio Reyes</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 3<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="B" data-day="Mon">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 3, Shift B<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Beatriz C." data-shift="C" data-day="Mon">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">BC</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Beatriz Cruz</strong><br>
+                                        Shift: C (2PM-6PM)<br>
+                                        Machine: 3<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                
+                                <!-- Tuesday -->
+                                <td class="time-slot slot-checked-in" data-patient="Francisco L." data-shift="A" data-day="Tue">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">FL</div>
+                                        <div class="slot-status">Checked In</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Francisco Lopez</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 3<br>
+                                        Status: Checked In at 6:10AM
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="B" data-day="Tue">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 3, Shift B<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Gabriela M." data-shift="C" data-day="Tue">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">GM</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Gabriela Martinez</strong><br>
+                                        Shift: C (2PM-6PM)<br>
+                                        Machine: 3<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                
+                                <!-- Wednesday -->
+                                <td class="time-slot slot-available" data-shift="A" data-day="Wed">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 3, Shift A<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Hector P." data-shift="B" data-day="Wed">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">HP</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Hector Perez</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 3<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Wed">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 3, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Thursday -->
+                                <td class="time-slot slot-scheduled" data-patient="Ines R." data-shift="A" data-day="Thu">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">IR</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Ines Rodriguez</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 3<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-checked-in" data-patient="Javier S." data-shift="B" data-day="Thu">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">JS</div>
+                                        <div class="slot-status">Checked In</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Javier Sanchez</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 3<br>
+                                        Status: Checked In at 10:20AM
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Thu">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 3, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Friday -->
+                                <td class="time-slot slot-available" data-shift="A" data-day="Fri">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 3, Shift A<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Karina V." data-shift="B" data-day="Fri">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">KV</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Karina Vargas</strong><br>
+                                        Shift: B (10AM-2PM)<br>
+                                        Machine: 3<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="C" data-day="Fri">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 3, Shift C<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                
+                                <!-- Saturday -->
+                                <td class="time-slot slot-scheduled" data-patient="Leonardo D." data-shift="A" data-day="Sat">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">LD</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Leonardo Diaz</strong><br>
+                                        Shift: A (6AM-10AM)<br>
+                                        Machine: 3<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-available" data-shift="B" data-day="Sat">
+                                    <div class="slot-content">
+                                        <i class="fas fa-plus"></i>
+                                        <div class="slot-status">Available</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Available Slot</strong><br>
+                                        Machine: 3, Shift B<br>
+                                        Click to schedule patient
+                                    </div>
+                                </td>
+                                <td class="time-slot slot-scheduled" data-patient="Monica E." data-shift="C" data-day="Sat">
+                                    <div class="slot-content">
+                                        <div class="patient-initials">ME</div>
+                                        <div class="slot-status">Scheduled</div>
+                                    </div>
+                                    <div class="tooltip">
+                                        <strong>Monica Espinoza</strong><br>
+                                        Shift: C (2PM-6PM)<br>
+                                        Machine: 3<br>
+                                        Status: Scheduled
+                                    </div>
+                                </td>
+                                
+                                <!-- Sunday (No sessions) -->
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                                <td class="time-slot" style="background-color: var(--gray-100);">
+                                    <div class="slot-content text-muted">
+                                        <i class="fas fa-ban"></i>
+                                        <div class="slot-status">No Session</div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="empty-state" id="empty-schedule" style="display: none; margin-top: var(--spacing-xl);">
+                    <div class="empty-icon">
+                        <i class="far fa-calendar-plus"></i>
+                    </div>
+                    <div class="empty-text">No patients scheduled this week.</div>
+                    <button class="btn btn-primary mt-3">
+                        <i class="fas fa-plus"></i>
+                        <span>Schedule first patient</span>
+                    </button>
+                </div>
+            </div>
+        </main>
+    </div>
 
-        <!-- Legend -->
-        <div class="bg-white rounded-lg shadow mb-8">
-            <div class="border-b border-gray-200 px-6 py-4">
-                <h2 class="text-lg font-medium text-gray-900">Status Legend</h2>
-            </div>
-            <div class="p-6">
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="flex items-center">
-                        <div class="w-5 h-5 bg-green-100 border border-green-300 rounded mr-3"></div>
-                        <span class="text-gray-700">Available - Machine ready for scheduling</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-5 h-5 bg-blue-100 border border-blue-300 rounded mr-3"></div>
-                        <span class="text-gray-700">Scheduled - Patient assigned to slot</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-5 h-5 bg-red-100 border border-red-300 rounded mr-3"></div>
-                        <span class="text-gray-700">Not Available - Machine out of service</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-5 h-5 bg-yellow-100 border border-yellow-300 rounded mr-3"></div>
-                        <span class="text-gray-700">Maintenance - Machine under maintenance</span>
-                    </div>
-                    <div class="flex items-center">
-                        <div class="w-5 h-5 bg-gray-100 border border-gray-300 rounded mr-3"></div>
-                        <span class="text-gray-700">Unavailable - Machine not operational</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-white mt-8 border-t">
-        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-center">
-                <p class="text-center md:text-left text-gray-500 text-sm mb-2 md:mb-0">
-                    Envivo Dialysis Center &copy; 2026 - All rights reserved
-                </p>
-                <div class="flex space-x-4">
-                    <a href="#" class="text-gray-400 hover:text-gray-500">
-                        <i class="fas fa-question-circle"></i> Help
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-gray-500">
-                        <i class="fas fa-envelope"></i> Contact
-                    </a>
-                    <a href="#" class="text-gray-400 hover:text-gray-500">
-                        <i class="fas fa-cog"></i> Settings
-                    </a>
-                </div>
-            </div>
-        </div>
-    </footer>
+    <script>
+        // ====== GLOBAL VARIABLES ======
+        let currentWeekStart = new Date(2026, 1, 2); // Feb 2, 2026
+        
+        // ====== DOM ELEMENT REFERENCES ======
+        const currentWeekElement = document.getElementById('current-week');
+        const prevWeekButton = document.getElementById('prev-week');
+        const nextWeekButton = document.getElementById('next-week');
+        const reAddButtons = document.querySelectorAll('.re-add-btn');
+        const scheduleSlots = document.querySelectorAll('.time-slot');
+        const emptyAutoRemoval = document.getElementById('empty-auto-removal');
+        const emptyManualRemoval = document.getElementById('empty-manual-removal');
+        const emptySchedule = document.getElementById('empty-schedule');
+        
+        // ====== DATE FUNCTIONS ======
+        function formatDate(date) {
+            const options = { month: 'short', day: 'numeric', year: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+        
+        function getWeekRange(startDate) {
+            const endDate = new Date(startDate);
+            endDate.setDate(endDate.getDate() + 6);
+            return `${formatDate(startDate)} - ${formatDate(endDate)}`;
+        }
+        
+        function updateWeekDisplay() {
+            currentWeekElement.textContent = getWeekRange(currentWeekStart);
+        }
+        
+        // ====== EVENT LISTENERS ======
+        // Week Navigation
+        prevWeekButton.addEventListener('click', function() {
+            currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+            updateWeekDisplay();
+            
+            // Show loading state
+            const scheduleGrid = document.querySelector('.schedule-grid-container');
+            scheduleGrid.innerHTML = '<div class="loading" style="margin: 2rem auto; display: block;"></div>';
+            
+            // Simulate loading new data
+            setTimeout(() => {
+                location.reload(); // In a real app, this would fetch new data
+            }, 500);
+        });
+        
+        nextWeekButton.addEventListener('click', function() {
+            currentWeekStart.setDate(currentWeekStart.getDate() + 7);
+            updateWeekDisplay();
+            
+            // Show loading state
+            const scheduleGrid = document.querySelector('.schedule-grid-container');
+            scheduleGrid.innerHTML = '<div class="loading" style="margin: 2rem auto; display: block;"></div>';
+            
+            // Simulate loading new data
+            setTimeout(() => {
+                location.reload(); // In a real app, this would fetch new data
+            }, 500);
+        });
+        
+        // Re-add Patient Buttons
+        reAddButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const patientName = this.getAttribute('data-patient');
+                
+                // Show confirmation dialog (simulated)
+                if (confirm(`Re-add ${patientName} to active patients?`)) {
+                    // Show success message
+                    alert(`${patientName} has been re-added successfully.`);
+                    
+                    // Remove from list (in a real app, this would update the database)
+                    const listItem = this.closest('.removal-item');
+                    listItem.style.opacity = '0.5';
+                    listItem.style.textDecoration = 'line-through';
+                    this.textContent = 'Re-added';
+                    this.disabled = true;
+                    
+                    // Check if all items are removed
+                    checkEmptyStates();
+                }
+            });
+        });
+        
+        // Schedule Slot Click
+        scheduleSlots.forEach(slot => {
+            slot.addEventListener('click', function() {
+                const patient = this.getAttribute('data-patient');
+                const shift = this.getAttribute('data-shift');
+                const day = this.getAttribute('data-day');
+                const machine = this.closest('.machine-row').querySelector('.machine-label').textContent;
+                
+                if (this.classList.contains('slot-available')) {
+                    // Available slot - open booking modal
+                    openBookingModal(day, shift, machine, this);
+                } else if (this.classList.contains('slot-scheduled') || 
+                          this.classList.contains('slot-checked-in') ||
+                          this.classList.contains('slot-late')) {
+                    // Scheduled or checked-in slot - open patient profile
+                    openPatientProfile(patient, day, shift, machine);
+                } else if (this.classList.contains('slot-unavailable')) {
+                    // Unavailable slot - show machine details
+                    showMachineDetails(this);
+                }
+            });
+        });
+        
+        // ====== MODAL FUNCTIONS ======
+        function openBookingModal(day, shift, machine, slotElement) {
+            // In a real app, this would open a modal
+            // For this demo, we'll simulate with an alert
+            alert(`Booking Modal\n\nDay: ${day}\nMachine: ${machine}\nShift: ${shift}\n\nThis would open the booking form with availability constraints.\n\nAccording to PRD:\n- Only available day group + shift + machine combinations are shown\n- Fully booked machines are excluded\n- Selection of already-booked slots is prevented`);
+        }
+        
+        function openPatientProfile(patientInitials, day, shift, machine) {
+            // In a real app, this would redirect to patient profile
+            // For this demo, we'll simulate with an alert
+            const patientMap = {
+                'JR': 'Jose Reyes',
+                'MS': 'Maria Santos',
+                'AL': 'Ana Lopez',
+                'JD': 'Juan Dela Cruz',
+                'CR': 'Carlos Reyes',
+                'ET': 'Elena Torres',
+                'LM': 'Luis Mendoza',
+                'PG': 'Pedro Gomez',
+                'SR': 'Sofia Reyes',
+                'MT': 'Miguel Torres',
+                'RG': 'Roberto Garcia',
+                'CL': 'Carmen Lopez',
+                'IM': 'Isabel Mendoza',
+                'AR': 'Antonio Reyes',
+                'BC': 'Beatriz Cruz',
+                'FL': 'Francisco Lopez',
+                'GM': 'Gabriela Martinez',
+                'HP': 'Hector Perez',
+                'IR': 'Ines Rodriguez',
+                'JS': 'Javier Sanchez',
+                'KV': 'Karina Vargas',
+                'LD': 'Leonardo Diaz',
+                'ME': 'Monica Espinoza'
+            };
+            
+            const patientName = patientMap[patientInitials] || 'Patient';
+            alert(`Opening Patient Profile for: ${patientName}\n\nSchedule: ${day}, Shift ${shift}, ${machine}\n\nThis would show:\n- Patient details\n- Check-in history\n- Schedule history\n- Attendance statistics\n- "Remove from Schedule" button if applicable\n- Missed session counter (X/3)`);
+        }
+        
+        function showMachineDetails(slotElement) {
+            // In a real app, this would show machine details
+            // For this demo, we'll use the tooltip content
+            const tooltip = slotElement.querySelector('.tooltip');
+            if (tooltip) {
+                alert(tooltip.innerHTML.replace(/<br>/g, '\n').replace(/<[^>]*>/g, ''));
+            }
+        }
+        
+        // ====== UTILITY FUNCTIONS ======
+        function checkEmptyStates() {
+            // Check auto-removal list
+            const autoRemovalItems = document.querySelectorAll('#auto-removal-list .removal-item');
+            const visibleAutoItems = Array.from(autoRemovalItems).filter(item => 
+                item.style.opacity !== '0.5' && item.style.display !== 'none'
+            );
+            
+            if (visibleAutoItems.length === 0) {
+                document.querySelector('#auto-removal-list').style.display = 'none';
+                emptyAutoRemoval.style.display = 'block';
+            }
+            
+            // Check manual removal list
+            const manualRemovalItems = document.querySelectorAll('#manual-removal-list .removal-item');
+            const visibleManualItems = Array.from(manualRemovalItems).filter(item => 
+                item.style.opacity !== '0.5' && item.style.display !== 'none'
+            );
+            
+            if (visibleManualItems.length === 0) {
+                document.querySelector('#manual-removal-list').style.display = 'none';
+                emptyManualRemoval.style.display = 'block';
+            }
+            
+            // Check schedule (in a real app, this would check if there are any scheduled patients)
+            // For now, we'll leave the schedule as is since it has data
+        }
+        
+        // ====== TOOLTIP POSITIONING ======
+        document.querySelectorAll('.time-slot').forEach(slot => {
+            slot.addEventListener('mouseenter', function(e) {
+                const tooltip = this.querySelector('.tooltip');
+                if (tooltip) {
+                    // Position tooltip above the slot
+                    const rect = this.getBoundingClientRect();
+                    tooltip.style.left = '50%';
+                    tooltip.style.top = '-10px';
+                    tooltip.style.transform = 'translate(-50%, -100%)';
+                }
+            });
+        });
+        
+        // ====== INITIALIZATION ======
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize week display
+            updateWeekDisplay();
+            
+            // Simulate loading state on initial load
+            setTimeout(() => {
+                document.body.style.opacity = '1';
+            }, 300);
+            
+            // Check initial empty states
+            checkEmptyStates();
+        });
+        
+        // ====== SIMULATE REAL-TIME UPDATES ======
+        // In a real app, this would be WebSocket or polling
+        setInterval(() => {
+            // Simulate occasional updates
+            if (Math.random() > 0.7) {
+                // Randomly update a slot status
+                const scheduledSlots = document.querySelectorAll('.slot-scheduled');
+                if (scheduledSlots.length > 0) {
+                    const randomSlot = scheduledSlots[Math.floor(Math.random() * scheduledSlots.length)];
+                    
+                    // Randomly change to checked-in
+                    if (Math.random() > 0.5 && !randomSlot.classList.contains('slot-checked-in')) {
+                        randomSlot.classList.remove('slot-scheduled');
+                        randomSlot.classList.add('slot-checked-in');
+                        
+                        const statusElement = randomSlot.querySelector('.slot-status');
+                        if (statusElement) {
+                            statusElement.textContent = 'Checked In';
+                        }
+                        
+                        // Update tooltip
+                        const tooltip = randomSlot.querySelector('.tooltip');
+                        if (tooltip) {
+                            tooltip.innerHTML = tooltip.innerHTML.replace('Status: Scheduled', 'Status: Checked In at ' + new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'}));
+                        }
+                    }
+                }
+            }
+        }, 15000); // Check every 15 seconds
+    </script>
 </body>
 </html>

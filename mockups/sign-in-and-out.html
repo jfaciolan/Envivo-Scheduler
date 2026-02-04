@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envivo Dialysis - Daily Check-In & Sign-Out</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --envivo-teal: #2D7A78;
+            --envivo-pink: #E86A92;
+            --envivo-cream: #F8F1E5;
+            --status-available: #28A745;
+            --status-scheduled: #0D6EFD;
+            --status-unavailable: #DC3545;
+            --status-warning: #FFC107;
+            --status-complete: #6F42C1;
+            --status-manual-removal: #8B4513;
+            --status-notice: #FFF3CD;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: var(--envivo-cream);
+        }
+        
+        .header {
+            background-color: var(--envivo-teal);
+        }
+        
+        .btn-primary {
+            background-color: var(--envivo-pink);
+        }
+        
+        .btn-primary:hover {
+            background-color: #d65a82;
+        }
+        
+        .status-not-checked-in {
+            color: #6c757d;
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+        }
+        
+        .status-checked-in {
+            color: var(--status-available);
+            background-color: rgba(40, 167, 69, 0.1);
+            border: 1px solid rgba(40, 167, 69, 0.3);
+        }
+        
+        .status-late {
+            color: var(--status-warning);
+            background-color: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.3);
+        }
+        
+        .status-signed-out {
+            color: var(--status-complete);
+            background-color: rgba(111, 66, 193, 0.1);
+            border: 1px solid rgba(111, 66, 193, 0.3);
+        }
+        
+        .status-missed {
+            color: var(--status-unavailable);
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+        
+        .missed-counter {
+            background-color: rgba(220, 53, 69, 0.15);
+            color: var(--status-unavailable);
+        }
+        
+        .shift-a { border-left: 4px solid #4f46e5; }
+        .shift-b { border-left: 4px solid #10b981; }
+        .shift-c { border-left: 4px solid #f59e0b; }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        
+        .toast {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        
+        .modal-content {
+            animation: modalAppear 0.3s ease-out;
+        }
+        
+        @keyframes modalAppear {
+            from { transform: translateY(-30px) scale(0.95); opacity: 0; }
+            to { transform: translateY(0) scale(1); opacity: 1; }
+        }
+        
+        .tooltip {
+            visibility: hidden;
+            position: absolute;
+            z-index: 100;
+            background-color: #333;
+            color: white;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            bottom: 125%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        
+        .tooltip:after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #333 transparent transparent transparent;
+        }
+        
+        .has-tooltip:hover .tooltip {
+            visibility: visible;
+        }
+    </style>
+</head>
+<body class="min-h-screen">
+    <!-- Header/Navigation -->
+    <header class="header text-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <a href="dashboard.html" class="flex items-center space-x-2 hover:opacity-90 transition">
+                        <i class="fas fa-arrow-left"></i>
+                        <span>Back to Dashboard</span>
+                    </a>
+                    <h1 class="text-2xl font-bold" style="font-family: 'Lexend', sans-serif;">
+                        <i class="fas fa-calendar-check mr-2"></i>Daily Check-In & Sign-Out
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm bg-white/20 px-3 py-1 rounded-full">
+                        <i class="fas fa-user-circle mr-1"></i>Lara (Receptionist)
+                    </span>
+                    <span class="text-sm bg-white/20 px-3 py-1 rounded-full">
+                        <i class="fas fa-hospital mr-1"></i>Bacolod Branch
+                    </span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Date Selector & Stats -->
+        <div class="mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2" style="font-family: 'Lexend', sans-serif;">
+                        <i class="fas fa-calendar-day mr-2"></i>Today's Schedule
+                    </h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex items-center space-x-2">
+                            <button id="prevDay" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
+                                <i class="fas fa-chevron-left"></i>
+                            </button>
+                            <div class="text-lg font-semibold text-gray-700 px-4 py-2 bg-white rounded shadow-sm">
+                                <i class="far fa-calendar mr-2"></i>
+                                <span id="currentDate">February 6, 2026</span>
+                            </div>
+                            <button id="nextDay" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">
+                                <i class="fas fa-chevron-right"></i>
+                            </button>
+                            <button id="todayBtn" class="px-4 py-2 bg-blue-100 text-blue-700 rounded hover:bg-blue-200">
+                                Today
+                            </button>
+                        </div>
+                        <div class="text-sm text-gray-600 mt-2 md:mt-0">
+                            <i class="far fa-clock mr-1"></i>Current Time: <span id="currentTime">09:15 AM</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-4 md:mt-0 flex space-x-4">
+                    <div class="bg-white p-4 rounded shadow-sm">
+                        <div class="text-sm text-gray-600">Total Scheduled</div>
+                        <div class="text-2xl font-bold text-blue-600" id="totalScheduled">12</div>
+                    </div>
+                    <div class="bg-white p-4 rounded shadow-sm">
+                        <div class="text-sm text-gray-600">Checked In</div>
+                        <div class="text-2xl font-bold text-green-600" id="totalCheckedIn">3</div>
+                    </div>
+                    <div class="bg-white p-4 rounded shadow-sm">
+                        <div class="text-sm text-gray-600">Signed Out</div>
+                        <div class="text-2xl font-bold text-purple-600" id="totalSignedOut">0</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Status Legend -->
+            <div class="bg-white p-4 rounded shadow-sm mb-6">
+                <h3 class="text-sm font-semibold text-gray-700 mb-3">Status Legend</h3>
+                <div class="flex flex-wrap gap-3">
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-gray-300 rounded-full mr-2"></div>
+                        <span class="text-sm">Not Checked In</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        <span class="text-sm">Checked In</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-yellow-500 rounded-full mr-2"></div>
+                        <span class="text-sm">Late</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-purple-500 rounded-full mr-2"></div>
+                        <span class="text-sm">Signed Out</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-3 h-3 bg-red-500 rounded-full mr-2"></div>
+                        <span class="text-sm">Missed Session</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Check-In Table -->
+        <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-list-check mr-2"></i>Today's Patients
+                </h3>
+                <div class="flex space-x-2">
+                    <div class="relative has-tooltip">
+                        <button id="filterBtn" class="px-4 py-2 border border-gray-300 rounded text-gray-700 hover:bg-gray-50">
+                            <i class="fas fa-filter mr-2"></i>Filter
+                        </button>
+                        <div class="tooltip">Filter by shift or status</div>
+                    </div>
+                    <button id="refreshBtn" class="px-4 py-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200">
+                        <i class="fas fa-sync-alt mr-2"></i>Refresh
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden p-8">
+                <div class="skeleton h-8 w-48 mb-6 rounded"></div>
+                <div class="space-y-3">
+                    <div class="skeleton h-12 rounded"></div>
+                    <div class="skeleton h-12 rounded"></div>
+                    <div class="skeleton h-12 rounded"></div>
+                    <div class="skeleton h-12 rounded"></div>
+                    <div class="skeleton h-12 rounded"></div>
+                </div>
+            </div>
+            
+            <!-- Empty State -->
+            <div id="emptyState" class="hidden p-12 text-center">
+                <div class="text-gray-400 text-6xl mb-4">
+                    <i class="fas fa-user-clock"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-700 mb-2">No patients scheduled for today</h3>
+                <p class="text-gray-600 mb-6">Check tomorrow's schedule or add new bookings from the dashboard.</p>
+                <a href="dashboard.html" class="btn-primary text-white px-6 py-3 rounded-lg inline-block hover:opacity-90">
+                    <i class="fas fa-calendar-plus mr-2"></i>Go to Dashboard
+                </a>
+            </div>
+            
+            <!-- Error State -->
+            <div id="errorState" class="hidden p-8">
+                <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                    <div class="text-red-500 text-5xl mb-4">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-red-700 mb-2">Failed to load check-in data</h3>
+                    <p class="text-red-600 mb-6">There was an error retrieving today's schedule. Please check your connection and try again.</p>
+                    <button id="retryBtn" class="bg-red-100 text-red-700 px-6 py-3 rounded-lg hover:bg-red-200">
+                        <i class="fas fa-redo mr-2"></i>Retry Loading
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Ideal State - Table -->
+            <div id="tableContainer">
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Patient Name
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Shift
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Machine
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Status
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Missed Sessions
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Check-in Time
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Sign-Out Time
+                                </th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="patientsTableBody" class="bg-white divide-y divide-gray-200">
+                            <!-- Table rows will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                
+                <!-- Partial State Note -->
+                <div id="partialState" class="hidden p-4 border-t border-gray-200 text-center text-sm text-gray-500">
+                    <i class="fas fa-sync-alt animate-spin mr-2"></i>Loading additional data...
+                </div>
+            </div>
+            
+            <!-- Table Footer -->
+            <div class="px-6 py-4 border-t border-gray-200 text-sm text-gray-600">
+                <div class="flex justify-between items-center">
+                    <div>
+                        Showing <span id="showingCount">12</span> of <span id="totalCount">12</span> patients
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50" id="prevPage" disabled>
+                            <i class="fas fa-chevron-left"></i>
+                        </button>
+                        <span class="px-3 py-1">Page <span id="currentPage">1</span> of <span id="totalPages">1</span></span>
+                        <button class="px-3 py-1 border border-gray-300 rounded disabled:opacity-50" id="nextPage" disabled>
+                            <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions Panel -->
+        <div class="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-user-plus mr-2"></i>Quick Patient Registration
+                </h3>
+                <p class="text-gray-600 mb-4">Register a new patient directly from check-in if they arrive without an existing record.</p>
+                <button id="quickRegisterBtn" class="w-full btn-primary text-white py-3 rounded-lg hover:opacity-90">
+                    <i class="fas fa-user-plus mr-2"></i>Register New Patient
+                </button>
+            </div>
+            
+            <div class="bg-white p-6 rounded shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-calendar-plus mr-2"></i>Quick Scheduling
+                </h3>
+                <p class="text-gray-600 mb-4">Schedule a patient for today if they arrive without an appointment (subject to availability).</p>
+                <button id="quickScheduleBtn" class="w-full bg-blue-100 text-blue-700 py-3 rounded-lg hover:bg-blue-200">
+                    <i class="fas fa-calendar-plus mr-2"></i>Schedule for Today
+                </button>
+            </div>
+            
+            <div class="bg-white p-6 rounded shadow-sm">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>Missed Sessions Alert
+                </h3>
+                <div class="space-y-2">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-700">Patients with 2 missed sessions:</span>
+                        <span class="font-bold text-red-600" id="twoMissedCount">2</span>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        These patients will be auto-removed if they miss one more session.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="fixed top-4 right-4 z-50 space-y-3 max-w-sm"></div>
+
+    <!-- Modals -->
+    
+    <!-- Check-In Modal for Unscheduled Patient -->
+    <div id="unscheduledCheckinModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-xl modal-content w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">
+                        <i class="fas fa-exclamation-circle text-yellow-500 mr-2"></i>No Schedule Found
+                    </h3>
+                    <button id="closeUnscheduledModal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="text-gray-600 mb-6">
+                    This patient is not scheduled for today. Would you like to create a booking for them?
+                </p>
+                <div class="flex space-x-3">
+                    <button id="cancelUnscheduledBtn" class="flex-1 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button id="createBookingBtn" class="flex-1 btn-primary text-white py-3 rounded hover:opacity-90">
+                        Create Booking
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Check-In After Shift End Modal -->
+    <div id="postShiftCheckinModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-xl modal-content w-full max-w-md mx-4">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-xl font-semibold text-gray-800">
+                        <i class="fas fa-exclamation-triangle text-red-500 mr-2"></i>Session Has Ended
+                    </h3>
+                    <button id="closePostShiftModal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <p class="text-gray-600 mb-6">
+                    This session has already ended. Would you like to mark it as a missed session?
+                </p>
+                <div class="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded">
+                    <p class="text-sm text-yellow-800">
+                        <i class="fas fa-info-circle mr-2"></i>Marking as missed will increment the missed session counter.
+                    </p>
+                </div>
+                <div class="flex space-x-3">
+                    <button id="cancelPostShiftBtn" class="flex-1 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+                        Cancel
+                    </button>
+                    <button id="markMissedBtn" class="flex-1 bg-red-600 text-white py-3 rounded hover:bg-red-700">
+                        Mark as Missed
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Booking Modal -->
+    <div id="quickBookingModal" class="fixed inset-0 z-50 flex items-center justify-center modal-overlay hidden">
+        <div class="bg-white rounded-lg shadow-xl modal-content w-full max-w-lg mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h3 class="text-xl font-semibold text-gray-800">
+                        <i class="fas fa-calendar-plus text-blue-500 mr-2"></i>Quick Booking
+                    </h3>
+                    <button id="closeBookingModal" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Patient</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select a patient</option>
+                            <option value="1">Maria Santos</option>
+                            <option value="2">Juan Dela Cruz</option>
+                            <option value="3">Carlos Reyes</option>
+                        </select>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Day Group</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button class="py-3 border border-gray-300 rounded hover:bg-gray-50 text-gray-700">
+                                Group A
+                            </button>
+                            <button class="py-3 border border-gray-300 rounded hover:bg-gray-50 text-gray-700">
+                                Group B
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Shift</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <button class="py-3 border border-gray-300 rounded hover:bg-gray-50 text-gray-700">
+                                Shift A (6AM-10AM)
+                            </button>
+                            <button class="py-3 border border-gray-300 rounded hover:bg-gray-50 text-gray-700">
+                                Shift B (10AM-2PM)
+                            </button>
+                            <button class="py-3 border border-gray-300 rounded hover:bg-gray-50 text-gray-700">
+                                Shift C (2PM-6PM)
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Machine</label>
+                        <select class="w-full px-4 py-2 border border-gray-300 rounded focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+                            <option value="">Select an available machine</option>
+                            <option value="1">Machine 01</option>
+                            <option value="2">Machine 02</option>
+                            <option value="3">Machine 03</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Only available machines are shown</p>
+                    </div>
+                    
+                    <div class="pt-4 border-t border-gray-200">
+                        <div class="flex space-x-3">
+                            <button id="cancelBookingBtn" class="flex-1 py-3 border border-gray-300 text-gray-700 rounded hover:bg-gray-50">
+                                Cancel
+                            </button>
+                            <button id="confirmBookingBtn" class="flex-1 bg-blue-600 text-white py-3 rounded hover:bg-blue-700">
+                                Confirm Booking
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-12 py-6">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="mb-4 md:mb-0">
+                    <h3 class="text-xl font-bold mb-2">Envivo Dialysis Center</h3>
+                    <p class="text-gray-400">Bacolod City, Philippines</p>
+                </div>
+                <div class="text-center md:text-right">
+                    <p class="text-gray-400 text-sm">© 2026 Envivo Scheduling System v1.1</p>
+                    <p class="text-gray-400 text-sm">Compliant with Data Privacy Act (RA 10173)</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sample patient data
+        const patients = [
+            {
+                id: 1,
+                name: "Maria Santos",
+                shift: "A",
+                machine: "Machine 01",
+                status: "checked-in",
+                missedCount: 0,
+                checkInTime: "09:15 AM",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 2,
+                name: "Juan Dela Cruz",
+                shift: "A",
+                machine: "Machine 03",
+                status: "late",
+                missedCount: 1,
+                checkInTime: "09:20 AM",
+                signOutTime: "",
+                isLate: true,
+                lateMinutes: 20
+            },
+            {
+                id: 3,
+                name: "Carlos Reyes",
+                shift: "A",
+                machine: "Machine 05",
+                status: "not-checked-in",
+                missedCount: 2,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 4,
+                name: "Ana Gonzales",
+                shift: "A",
+                machine: "Machine 07",
+                status: "not-checked-in",
+                missedCount: 0,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 5,
+                name: "Roberto Lim",
+                shift: "B",
+                machine: "Machine 02",
+                status: "not-checked-in",
+                missedCount: 0,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 6,
+                name: "Sofia Tan",
+                shift: "B",
+                machine: "Machine 04",
+                status: "not-checked-in",
+                missedCount: 1,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 7,
+                name: "Miguel Rivera",
+                shift: "B",
+                machine: "Machine 06",
+                status: "not-checked-in",
+                missedCount: 0,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 8,
+                name: "Elena Chavez",
+                shift: "C",
+                machine: "Machine 01",
+                status: "not-checked-in",
+                missedCount: 0,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 9,
+                name: "Luis Castro",
+                shift: "C",
+                machine: "Machine 03",
+                status: "not-checked-in",
+                missedCount: 0,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 10,
+                name: "Gabriela Lopez",
+                shift: "C",
+                machine: "Machine 08",
+                status: "not-checked-in",
+                missedCount: 0,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            },
+            {
+                id: 11,
+                name: "Francisco Cruz",
+                shift: "A",
+                machine: "Machine 10",
+                status: "signed-out",
+                missedCount: 0,
+                checkInTime: "08:45 AM",
+                signOutTime: "10:30 AM",
+                isLate: false
+            },
+            {
+                id: 12,
+                name: "Isabella Mendoza",
+                shift: "A",
+                machine: "Machine 12",
+                status: "missed",
+                missedCount: 3,
+                checkInTime: "",
+                signOutTime: "",
+                isLate: false
+            }
+        ];
+
+        // State management
+        let currentState = 'ideal'; // 'loading', 'empty', 'error', 'ideal', 'partial'
+        let currentDate = new Date(2026, 1, 6); // Feb 6, 2026
+        let currentPatientForModal = null;
+        let currentShiftEndTimes = {
+            'A': '10:00 AM',
+            'B': '02:00 PM', 
+            'C': '06:00 PM'
+        };
+
+        // DOM Elements
+        const patientsTableBody = document.getElementById('patientsTableBody');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const errorState = document.getElementById('errorState');
+        const tableContainer = document.getElementById('tableContainer');
+        const partialState = document.getElementById('partialState');
+        const currentDateElement = document.getElementById('currentDate');
+        const currentTimeElement = document.getElementById('currentTime');
+        const totalScheduledElement = document.getElementById('totalScheduled');
+        const totalCheckedInElement = document.getElementById('totalCheckedIn');
+        const totalSignedOutElement = document.getElementById('totalSignedOut');
+        const twoMissedCountElement = document.getElementById('twoMissedCount');
+        
+        // Toast functions
+        function showToast(message, type = 'success') {
+            const toastContainer = document.getElementById('toastContainer');
+            const toastId = 'toast-' + Date.now();
+            
+            let bgColor = 'bg-green-100 border-green-400 text-green-700';
+            let icon = 'fas fa-check-circle';
+            
+            if (type === 'error') {
+                bgColor = 'bg-red-100 border-red-400 text-red-700';
+                icon = 'fas fa-exclamation-circle';
+            } else if (type === 'warning') {
+                bgColor = 'bg-yellow-100 border-yellow-400 text-yellow-700';
+                icon = 'fas fa-exclamation-triangle';
+            } else if (type === 'info') {
+                bgColor = 'bg-blue-100 border-blue-400 text-blue-700';
+                icon = 'fas fa-info-circle';
+            }
+            
+            const toast = document.createElement('div');
+            toast.id = toastId;
+            toast.className = `toast p-4 rounded-lg border ${bgColor} shadow-md`;
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="${icon} mr-3"></i>
+                    <div class="flex-1">${message}</div>
+                    <button onclick="removeToast('${toastId}')" class="ml-3 text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            `;
+            
+            toastContainer.appendChild(toast);
+            
+            // Auto-remove after 5 seconds
+            setTimeout(() => {
+                removeToast(toastId);
+            }, 5000);
+        }
+        
+        function removeToast(id) {
+            const toast = document.getElementById(id);
+            if (toast) {
+                toast.style.opacity = '0';
+                toast.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }
+        }
+        
+        // State management functions
+        function setState(state) {
+            currentState = state;
+            
+            // Hide all states
+            loadingState.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            tableContainer.classList.add('hidden');
+            partialState.classList.add('hidden');
+            
+            // Show current state
+            switch(state) {
+                case 'loading':
+                    loadingState.classList.remove('hidden');
+                    break;
+                case 'empty':
+                    emptyState.classList.remove('hidden');
+                    break;
+                case 'error':
+                    errorState.classList.remove('hidden');
+                    break;
+                case 'partial':
+                    tableContainer.classList.remove('hidden');
+                    partialState.classList.remove('hidden');
+                    break;
+                case 'ideal':
+                    tableContainer.classList.remove('hidden');
+                    break;
+            }
+        }
+        
+        // Format date
+        function formatDate(date) {
+            const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            return date.toLocaleDateString('en-US', options);
+        }
+        
+        // Format time
+        function formatTime(date) {
+            return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+        }
+        
+        // Update current time display
+        function updateCurrentTime() {
+            const now = new Date();
+            currentTimeElement.textContent = formatTime(now);
+        }
+        
+        // Check if current time is after shift end
+        function isAfterShiftEnd(shift) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            
+            // Convert shift end times to 24-hour format for comparison
+            const shiftEndTimes24 = {
+                'A': { hour: 10, minute: 0 },
+                'B': { hour: 14, minute: 0 },
+                'C': { hour: 18, minute: 0 }
+            };
+            
+            const shiftEnd = shiftEndTimes24[shift];
+            
+            if (currentHour > shiftEnd.hour) return true;
+            if (currentHour === shiftEnd.hour && currentMinute > shiftEnd.minute) return true;
+            return false;
+        }
+        
+        // Check if check-in is late (15+ minutes after shift start)
+        function isLateCheckIn(shift) {
+            const now = new Date();
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            
+            // Shift start times: A=6AM, B=10AM, C=2PM
+            const shiftStartTimes24 = {
+                'A': { hour: 6, minute: 0 },
+                'B': { hour: 10, minute: 0 },
+                'C': { hour: 14, minute: 0 }
+            };
+            
+            const shiftStart = shiftStartTimes24[shift];
+            const shiftStartTotalMinutes = shiftStart.hour * 60 + shiftStart.minute;
+            const currentTotalMinutes = currentHour * 60 + currentMinute;
+            
+            return (currentTotalMinutes - shiftStartTotalMinutes) > 15;
+        }
+        
+        // Get status badge HTML
+        function getStatusBadge(status, isLate = false, lateMinutes = 0) {
+            let badgeClass = '';
+            let badgeText = '';
+            let icon = '';
+            
+            switch(status) {
+                case 'not-checked-in':
+                    badgeClass = 'status-not-checked-in';
+                    badgeText = 'Not Checked In';
+                    icon = 'far fa-clock';
+                    break;
+                case 'checked-in':
+                    if (isLate) {
+                        badgeClass = 'status-late';
+                        badgeText = `Late (${lateMinutes} min)`;
+                        icon = 'fas fa-exclamation-triangle';
+                    } else {
+                        badgeClass = 'status-checked-in';
+                        badgeText = 'Checked In';
+                        icon = 'fas fa-check-circle';
+                    }
+                    break;
+                case 'signed-out':
+                    badgeClass = 'status-signed-out';
+                    badgeText = 'Signed Out';
+                    icon = 'fas fa-sign-out-alt';
+                    break;
+                case 'missed':
+                    badgeClass = 'status-missed';
+                    badgeText = 'Missed';
+                    icon = 'fas fa-times-circle';
+                    break;
+            }
+            
+            return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${badgeClass}">
+                <i class="${icon} mr-1"></i> ${badgeText}
+            </span>`;
+        }
+        
+        // Get shift badge HTML
+        function getShiftBadge(shift) {
+            let shiftClass = '';
+            let shiftText = '';
+            
+            switch(shift) {
+                case 'A':
+                    shiftClass = 'shift-a bg-blue-50 text-blue-700';
+                    shiftText = 'Shift A (6AM-10AM)';
+                    break;
+                case 'B':
+                    shiftClass = 'shift-b bg-green-50 text-green-700';
+                    shiftText = 'Shift B (10AM-2PM)';
+                    break;
+                case 'C':
+                    shiftClass = 'shift-c bg-yellow-50 text-yellow-700';
+                    shiftText = 'Shift C (2PM-6PM)';
+                    break;
+            }
+            
+            return `<span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${shiftClass}">
+                <i class="far fa-clock mr-1"></i> ${shiftText}
+            </span>`;
+        }
+        
+        // Get action button HTML
+        function getActionButton(patient) {
+            let buttonHTML = '';
+            
+            if (patient.status === 'not-checked-in') {
+                buttonHTML = `
+                    <button onclick="checkInPatient(${patient.id})" class="btn-primary text-white px-4 py-2 rounded hover:opacity-90">
+                        <i class="fas fa-sign-in-alt mr-1"></i> Check In
+                    </button>
+                `;
+            } else if (patient.status === 'checked-in' || patient.status === 'late') {
+                buttonHTML = `
+                    <div class="flex space-x-2">
+                        <button onclick="signOutPatient(${patient.id})" class="border border-${patient.isLate ? 'yellow' : 'green'}-500 text-${patient.isLate ? 'yellow' : 'green'}-700 px-4 py-2 rounded hover:bg-${patient.isLate ? 'yellow' : 'green'}-50">
+                            <i class="fas fa-sign-out-alt mr-1"></i> Sign Out
+                        </button>
+                    </div>
+                `;
+            } else if (patient.status === 'signed-out' || patient.status === 'missed') {
+                buttonHTML = `
+                    <span class="text-gray-400 text-sm">No actions available</span>
+                `;
+            }
+            
+            return buttonHTML;
+        }
+        
+        // Update statistics
+        function updateStatistics() {
+            const total = patients.length;
+            const checkedIn = patients.filter(p => p.status === 'checked-in' || p.status === 'late').length;
+            const signedOut = patients.filter(p => p.status === 'signed-out').length;
+            const twoMissed = patients.filter(p => p.missedCount === 2).length;
+            
+            totalScheduledElement.textContent = total;
+            totalCheckedInElement.textContent = checkedIn;
+            totalSignedOutElement.textContent = signedOut;
+            twoMissedCountElement.textContent = twoMissed;
+        }
+        
+        // Render patients table
+        function renderPatientsTable() {
+            patientsTableBody.innerHTML = '';
+            
+            patients.forEach(patient => {
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">${patient.name}</div>
+                        <div class="text-sm text-gray-500">ID: ${patient.id}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${getShiftBadge(patient.shift)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <div class="font-medium text-gray-900">${patient.machine}</div>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${getStatusBadge(patient.status, patient.isLate, patient.lateMinutes || 0)}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        ${patient.missedCount > 0 ? 
+                            `<div class="flex items-center">
+                                <span class="missed-counter px-2 py-1 rounded text-xs font-bold mr-2">${patient.missedCount}/3</span>
+                                ${patient.missedCount === 2 ? 
+                                    '<span class="text-red-600 text-xs font-semibold">1 more = auto-removal</span>' : 
+                                    ''}
+                            </div>` : 
+                            '<span class="text-gray-400 text-sm">None</span>'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        ${patient.checkInTime || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
+                        ${patient.signOutTime || '-'}
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        ${getActionButton(patient)}
+                    </td>
+                `;
+                patientsTableBody.appendChild(row);
+            });
+            
+            updateStatistics();
+        }
+        
+        // Check-in patient
+        function checkInPatient(patientId) {
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+            
+            // Check if patient is scheduled for today
+            if (patient.status === 'not-checked-in') {
+                // Check if it's after shift end
+                if (isAfterShiftEnd(patient.shift)) {
+                    currentPatientForModal = patient;
+                    document.getElementById('postShiftCheckinModal').classList.remove('hidden');
+                    return;
+                }
+                
+                // Determine if check-in is late
+                const isLate = isLateCheckIn(patient.shift);
+                const lateMinutes = isLate ? 20 : 0; // For demo, using fixed value
+                
+                // Update patient status
+                patient.status = 'checked-in';
+                patient.isLate = isLate;
+                patient.lateMinutes = lateMinutes;
+                patient.checkInTime = formatTime(new Date());
+                
+                // Show appropriate toast
+                if (isLate) {
+                    showToast(`${patient.name} checked in late at ${patient.checkInTime} (${lateMinutes} minutes late).`, 'warning');
+                } else {
+                    showToast(`${patient.name} checked in at ${patient.checkInTime}.`, 'success');
+                }
+                
+                // Re-render table
+                renderPatientsTable();
+            } else {
+                // Patient already checked in or not scheduled
+                if (patient.status === 'checked-in' || patient.status === 'late') {
+                    showToast(`${patient.name} is already checked in.`, 'info');
+                } else {
+                    // This would be for unscheduled patient check-in
+                    currentPatientForModal = patient;
+                    document.getElementById('unscheduledCheckinModal').classList.remove('hidden');
+                }
+            }
+        }
+        
+        // Sign out patient
+        function signOutPatient(patientId) {
+            const patient = patients.find(p => p.id === patientId);
+            if (!patient) return;
+            
+            if (patient.status === 'checked-in' || patient.status === 'late') {
+                patient.status = 'signed-out';
+                patient.signOutTime = formatTime(new Date());
+                
+                showToast(`${patient.name} signed out at ${patient.signOutTime}.`, 'success');
+                
+                // Re-render table
+                renderPatientsTable();
+            } else {
+                showToast(`Cannot sign out patient who is not checked in.`, 'error');
+            }
+        }
+        
+        // Mark patient as missed
+        function markAsMissed() {
+            if (currentPatientForModal) {
+                currentPatientForModal.status = 'missed';
+                currentPatientForModal.missedCount += 1;
+                
+                showToast(`${currentPatientForModal.name} marked as missed session.`, 'warning');
+                
+                // Check for auto-removal (3 missed sessions)
+                if (currentPatientForModal.missedCount >= 3) {
+                    setTimeout(() => {
+                        showToast(`⚠️ IMMEDIATE AUTO-REMOVAL: ${currentPatientForModal.name} was automatically removed from all future schedules due to 3 missed sessions.`, 'error');
+                    }, 1000);
+                }
+                
+                renderPatientsTable();
+                document.getElementById('postShiftCheckinModal').classList.add('hidden');
+                currentPatientForModal = null;
+            }
+        }
+        
+        // Initialize the page
+        function init() {
+            // Set initial date
+            currentDateElement.textContent = formatDate(currentDate);
+            
+            // Update time every minute
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 60000);
+            
+            // Set initial state to loading for demo
+            setState('loading');
+            
+            // Simulate loading delay
+            setTimeout(() => {
+                if (patients.length === 0) {
+                    setState('empty');
+                } else {
+                    setState('ideal');
+                    renderPatientsTable();
+                }
+            }, 1500);
+            
+            // Event listeners for date navigation
+            document.getElementById('prevDay').addEventListener('click', () => {
+                currentDate.setDate(currentDate.getDate() - 1);
+                currentDateElement.textContent = formatDate(currentDate);
+                setState('loading');
+                
+                // Simulate loading for new date
+                setTimeout(() => {
+                    // For demo, just re-render same data
+                    setState('ideal');
+                    renderPatientsTable();
+                }, 1000);
+            });
+            
+            document.getElementById('nextDay').addEventListener('click', () => {
+                currentDate.setDate(currentDate.getDate() + 1);
+                currentDateElement.textContent = formatDate(currentDate);
+                setState('loading');
+                
+                // Simulate loading for new date
+                setTimeout(() => {
+                    // For demo, just re-render same data
+                    setState('ideal');
+                    renderPatientsTable();
+                }, 1000);
+            });
+            
+            document.getElementById('todayBtn').addEventListener('click', () => {
+                currentDate = new Date();
+                currentDateElement.textContent = formatDate(currentDate);
+                setState('loading');
+                
+                // Simulate loading for new date
+                setTimeout(() => {
+                    // For demo, just re-render same data
+                    setState('ideal');
+                    renderPatientsTable();
+                }, 1000);
+            });
+            
+            // Refresh button
+            document.getElementById('refreshBtn').addEventListener('click', () => {
+                setState('loading');
+                
+                // Simulate loading
+                setTimeout(() => {
+                    setState('ideal');
+                    renderPatientsTable();
+                    showToast('Check-in data refreshed.', 'info');
+                }, 1000);
+            });
+            
+            // Retry button for error state
+            document.getElementById('retryBtn').addEventListener('click', () => {
+                setState('loading');
+                
+                // Simulate loading
+                setTimeout(() => {
+                    setState('ideal');
+                    renderPatientsTable();
+                    showToast('Data loaded successfully.', 'success');
+                }, 1500);
+            });
+            
+            // Modal close buttons
+            document.getElementById('closeUnscheduledModal').addEventListener('click', () => {
+                document.getElementById('unscheduledCheckinModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closePostShiftModal').addEventListener('click', () => {
+                document.getElementById('postShiftCheckinModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeBookingModal').addEventListener('click', () => {
+                document.getElementById('quickBookingModal').classList.add('hidden');
+            });
+            
+            // Modal action buttons
+            document.getElementById('cancelUnscheduledBtn').addEventListener('click', () => {
+                document.getElementById('unscheduledCheckinModal').classList.add('hidden');
+                currentPatientForModal = null;
+            });
+            
+            document.getElementById('createBookingBtn').addEventListener('click', () => {
+                document.getElementById('unscheduledCheckinModal').classList.add('hidden');
+                document.getElementById('quickBookingModal').classList.remove('hidden');
+            });
+            
+            document.getElementById('cancelPostShiftBtn').addEventListener('click', () => {
+                document.getElementById('postShiftCheckinModal').classList.add('hidden');
+                currentPatientForModal = null;
+            });
+            
+            document.getElementById('markMissedBtn').addEventListener('click', markAsMissed);
+            
+            document.getElementById('cancelBookingBtn').addEventListener('click', () => {
+                document.getElementById('quickBookingModal').classList.add('hidden');
+            });
+            
+            document.getElementById('confirmBookingBtn').addEventListener('click', () => {
+                document.getElementById('quickBookingModal').classList.add('hidden');
+                showToast('Booking created successfully. Patient can now be checked in.', 'success');
+            });
+            
+            // Quick action buttons
+            document.getElementById('quickRegisterBtn').addEventListener('click', () => {
+                showToast('Redirecting to patient registration...', 'info');
+                // In a real app, this would redirect to registration page
+            });
+            
+            document.getElementById('quickScheduleBtn').addEventListener('click', () => {
+                document.getElementById('quickBookingModal').classList.remove('hidden');
+            });
+            
+            // Filter button
+            document.getElementById('filterBtn').addEventListener('click', () => {
+                showToast('Filter functionality would open filter options.', 'info');
+            });
+        }
+        
+        // Initialize when page loads
+        document.addEventListener('DOMContentLoaded', init);
+        
+        // Make functions available globally for onclick handlers
+        window.checkInPatient = checkInPatient;
+        window.signOutPatient = signOutPatient;
+        window.removeToast = removeToast;
+    </script>
+</body>
+</html>
