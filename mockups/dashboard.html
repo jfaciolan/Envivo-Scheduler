@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envivo Scheduling Dashboard - 30 Machines</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'available': '#10B981',
+                        'scheduled': '#3B82F6',
+                        'unavailable': '#EF4444',
+                        'maintenance': '#F59E0B'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .machine-row:nth-child(even) {
+            background-color: #f9fafb;
+        }
+        .slot-cell {
+            min-height: 60px;
+            transition: all 0.2s ease;
+        }
+        .slot-cell:hover {
+            transform: scale(1.02);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .machine-header {
+            background-color: #eff6ff;
+        }
+        .shift-header {
+            background-color: #f3f4f6;
+        }
+        .auto-removal-row:hover {
+            background-color: #fef3c7;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <!-- Header -->
+    <header class="bg-white shadow">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-900">Envivo Dialysis Scheduling System</h1>
+                <p class="text-sm text-gray-500">Bacolod Branch - 30 Machines</p>
+            </div>
+            <div class="flex items-center space-x-4">
+                <span class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                    <i class="fas fa-sync-alt mr-1"></i>Live Status
+                </span>
+                <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center">
+                    <i class="fas fa-user mr-2"></i>Admin
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        <!-- Dashboard Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500">
+                <div class="flex items-center">
+                    <div class="rounded-full bg-blue-100 p-3 mr-4">
+                        <i class="fas fa-calendar-check text-blue-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Scheduled Today</p>
+                        <p class="text-2xl font-bold">186</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500">
+                <div class="flex items-center">
+                    <div class="rounded-full bg-green-100 p-3 mr-4">
+                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Available Slots</p>
+                        <p class="text-2xl font-bold">90</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500">
+                <div class="flex items-center">
+                    <div class="rounded-full bg-red-100 p-3 mr-4">
+                        <i class="fas fa-exclamation-triangle text-red-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Unscheduled Patients</p>
+                        <p class="text-2xl font-bold">12</p>
+                    </div>
+                </div>
+            </div>
+            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500">
+                <div class="flex items-center">
+                    <div class="rounded-full bg-yellow-100 p-3 mr-4">
+                        <i class="fas fa-tools text-yellow-500 text-xl"></i>
+                    </div>
+                    <div>
+                        <p class="text-gray-500 text-sm">Maintenance</p>
+                        <p class="text-2xl font-bold">4</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Auto-removal Section -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">Auto-Removed Patients (Last 30 Days)</h2>
+                <button class="text-sm bg-gray-100 hover:bg-gray-200 text-gray-700 px-3 py-1 rounded-md">
+                    View All
+                </button>
+            </div>
+            <div class="p-6">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Patient Name</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date of Birth</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Removal Date</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <tr class="auto-removal-row">
+                            <td class="px-6 py-4 whitespace-nowrap">Juan Dela Cruz</td>
+                            <td class="px-6 py-4 whitespace-nowrap">1985-03-15</td>
+                            <td class="px-6 py-4 whitespace-nowrap">2026-07-20</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">3 Missed Sessions</span>
+                            </td>
+                        </tr>
+                        <tr class="auto-removal-row">
+                            <td class="px-6 py-4 whitespace-nowrap">Maria Santos</td>
+                            <td class="px-6 py-4 whitespace-nowrap">1990-11-22</td>
+                            <td class="px-6 py-4 whitespace-nowrap">2026-07-18</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">3 Missed Sessions</span>
+                            </td>
+                        </tr>
+                        <tr class="auto-removal-row">
+                            <td class="px-6 py-4 whitespace-nowrap">Pedro Reyes</td>
+                            <td class="px-6 py-4 whitespace-nowrap">1978-06-30</td>
+                            <td class="px-6 py-4 whitespace-nowrap">2026-07-15</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="bg-red-100 text-red-800 px-2 py-1 rounded text-xs">3 Missed Sessions</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Schedule Overview -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="border-b border-gray-200 px-6 py-4 flex justify-between items-center">
+                <h2 class="text-lg font-medium text-gray-900">Schedule Overview - 30 Machines</h2>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 bg-blue-500 text-white rounded-md text-sm flex items-center">
+                        <i class="fas fa-filter mr-1"></i> Filter
+                    </button>
+                    <button class="px-3 py-1 border border-gray-300 rounded-md text-sm flex items-center">
+                        <i class="fas fa-download mr-1"></i> Export
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Scrollable Schedule -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead>
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-48">Machine</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day A (Mon-Wed-Fri)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day B (Tue-Thu-Sat)</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Day C (Sun)</th>
+                        </tr>
+                    </thead>
+                    <tbody class="bg-white divide-y divide-gray-200">
+                        <!-- Machine Row - 1 -->
+                        <tr class="machine-row">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 1</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <!-- Slot 1 -->
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <!-- Slot 2 - Scheduled -->
+                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
+                                        <span class="text-sm font-medium">JD</span>
+                                        <span class="text-xs text-gray-500">John Doe</span>
+                                    </div>
+                                    <!-- Slot 3 - Available -->
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <!-- Slot 1 - Unavailable -->
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-red-100 border-red-300">
+                                        <span class="text-sm text-gray-500">Not Available</span>
+                                    </div>
+                                    <!-- Slot 2 - Scheduled -->
+                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
+                                        <span class="text-sm font-medium">MR</span>
+                                        <span class="text-xs text-gray-500">Maria Reyes</span>
+                                    </div>
+                                    <!-- Slot 3 - Available -->
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <!-- Slot 1 - Maintenance -->
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-yellow-100 border-yellow-300">
+                                        <span class="text-sm text-gray-500">Maintenance</span>
+                                    </div>
+                                    <!-- Slot 2 - Scheduled -->
+                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
+                                        <span class="text-sm font-medium">AJ</span>
+                                        <span class="text-xs text-gray-500">Ana Jimenez</span>
+                                    </div>
+                                    <!-- Slot 3 - Available -->
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Machine Row - 2 -->
+                        <tr class="machine-row">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 2</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
+                                        <span class="text-sm font-medium">LC</span>
+                                        <span class="text-xs text-gray-500">Luis Castillo</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Machine Row - 3 -->
+                        <tr class="machine-row">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 3</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex flex-col items-center justify-center h-16 bg-blue-100 border-blue-300 relative">
+                                        <span class="text-sm font-medium">EP</span>
+                                        <span class="text-xs text-gray-500">Elena Ponce</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Machine Row - 4 -->
+                        <tr class="machine-row">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 4</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        
+                        <!-- Machine Row - 5 -->
+                        <tr class="machine-row">
+                            <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">Machine 5</td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="grid grid-cols-3 gap-2">
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                    <div class="slot-cell border rounded p-2 flex items-center justify-center h-16 bg-green-100 border-green-300">
+                                        <span class="text-sm text-gray-500">Available</span>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Pagination -->
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+                <p class="text-sm text-gray-500">Showing 1 to 5 of 30 machines</p>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 border border-gray-300 rounded-md text-sm">Previous</button>
+                    <button class="px-3 py-1 bg-blue-500 text-white rounded-md text-sm">Next</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Legend -->
+        <div class="bg-white rounded-lg shadow mb-8">
+            <div class="border-b border-gray-200 px-6 py-4">
+                <h2 class="text-lg font-medium text-gray-900">Status Legend</h2>
+            </div>
+            <div class="p-6">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 bg-green-100 border border-green-300 rounded mr-3"></div>
+                        <span class="text-gray-700">Available - Machine ready for scheduling</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 bg-blue-100 border border-blue-300 rounded mr-3"></div>
+                        <span class="text-gray-700">Scheduled - Patient assigned to slot</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 bg-red-100 border border-red-300 rounded mr-3"></div>
+                        <span class="text-gray-700">Not Available - Machine out of service</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 bg-yellow-100 border border-yellow-300 rounded mr-3"></div>
+                        <span class="text-gray-700">Maintenance - Machine under maintenance</span>
+                    </div>
+                    <div class="flex items-center">
+                        <div class="w-5 h-5 bg-gray-100 border border-gray-300 rounded mr-3"></div>
+                        <span class="text-gray-700">Unavailable - Machine not operational</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white mt-8 border-t">
+        <div class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <p class="text-center md:text-left text-gray-500 text-sm mb-2 md:mb-0">
+                    Envivo Dialysis Center &copy; 2026 - All rights reserved
+                </p>
+                <div class="flex space-x-4">
+                    <a href="#" class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-question-circle"></i> Help
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-envelope"></i> Contact
+                    </a>
+                    <a href="#" class="text-gray-400 hover:text-gray-500">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </footer>
+</body>
+</html>
