@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Machine Management | Envivo Scheduling System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Lexend:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --envivo-teal: #2D7A78;
+            --envivo-pink: #E86A92;
+            --envivo-cream: #F8F1E5;
+            --status-available: #28A745;
+            --status-scheduled: #0D6EFD;
+            --status-unavailable: #DC3545;
+            --status-warning: #FFC107;
+            --status-complete: #6F42C1;
+            --status-manual-removal: #8B4513;
+            --status-notice: #FFF3CD;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #F8F1E5;
+        }
+        
+        .heading-font {
+            font-family: 'Lexend', sans-serif;
+        }
+        
+        .envivo-teal-bg {
+            background-color: #2D7A78;
+        }
+        
+        .envivo-pink-bg {
+            background-color: #E86A92;
+        }
+        
+        .envivo-cream-bg {
+            background-color: #F8F1E5;
+        }
+        
+        .btn-primary {
+            background-color: #E86A92;
+            color: white;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .btn-primary:hover {
+            background-color: #d55a82;
+            transform: translateY(-1px);
+        }
+        
+        .btn-secondary {
+            background-color: #2D7A78;
+            color: white;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #1c6a68;
+        }
+        
+        .btn-outline {
+            border: 1px solid #2D7A78;
+            color: #2D7A78;
+            background-color: transparent;
+            font-weight: 500;
+            padding: 8px 16px;
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+        
+        .btn-outline:hover {
+            background-color: rgba(45, 122, 120, 0.1);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        
+        .status-available {
+            background-color: rgba(40, 167, 69, 0.15);
+            color: #155724;
+        }
+        
+        .status-unavailable {
+            background-color: rgba(220, 53, 69, 0.15);
+            color: #721c24;
+        }
+        
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+        
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body class="envivo-cream-bg min-h-screen">
+    <!-- Navigation Header -->
+    <nav class="envivo-teal-bg text-white shadow-md">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fas fa-hospital-alt text-xl"></i>
+                    <h1 class="heading-font text-xl font-medium">Envivo Dialysis Center - Bacolod</h1>
+                </div>
+                <div class="flex items-center space-x-6">
+                    <a href="dashboard.html" class="hover:text-gray-200 transition"><i class="fas fa-home mr-1"></i> Dashboard</a>
+                    <a href="sign-in-and-out.html" class="hover:text-gray-200 transition"><i class="fas fa-clipboard-check mr-1"></i> Check-In</a>
+                    <a href="machines.html" class="font-semibold border-b-2 border-white pb-1"><i class="fas fa-cogs mr-1"></i> Machines</a>
+                    <a href="patients.html" class="hover:text-gray-200 transition"><i class="fas fa-users mr-1"></i> Patients</a>
+                    <div class="relative">
+                        <button class="flex items-center hover:text-gray-200 transition">
+                            <i class="fas fa-user-circle text-xl"></i>
+                            <span class="ml-2">Lara (Receptionist)</span>
+                            <i class="fas fa-chevron-down ml-1 text-sm"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        <!-- Page Header -->
+        <div class="mb-8">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h2 class="heading-font text-2xl font-medium text-gray-800">Machine Management</h2>
+                    <p class="text-gray-600 mt-1">Register, update status, and manage dialysis machines</p>
+                </div>
+                <button id="addMachineBtn" class="btn-primary flex items-center">
+                    <i class="fas fa-plus mr-2"></i> Register New Machine
+                </button>
+            </div>
+            
+            <!-- Stats Overview -->
+            <div class="grid grid-cols-3 gap-4 mt-6">
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Total Machines</p>
+                            <p class="text-2xl font-bold text-gray-800">15</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-blue-50">
+                            <i class="fas fa-cogs text-blue-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Available</p>
+                            <p class="text-2xl font-bold text-gray-800">12</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-green-50">
+                            <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-lg shadow p-4">
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <p class="text-gray-500 text-sm">Not Available</p>
+                            <p class="text-2xl font-bold text-gray-800">3</p>
+                        </div>
+                        <div class="p-3 rounded-full bg-red-50">
+                            <i class="fas fa-times-circle text-red-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Machine Table - Default/Ideal State -->
+        <div id="machineTableContainer" class="bg-white rounded-lg shadow overflow-hidden">
+            <!-- Table Header -->
+            <div class="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
+                <h3 class="heading-font text-lg font-medium text-gray-800">All Machines</h3>
+                <div class="flex items-center space-x-4">
+                    <div class="relative">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                        <input type="text" placeholder="Search machines..." class="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    </div>
+                    <button class="btn-outline flex items-center">
+                        <i class="fas fa-filter mr-2"></i> Filter
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Machine Table -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Machine ID</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Machine Name</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Branch</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                            <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="machineTableBody" class="bg-white divide-y divide-gray-200">
+                        <!-- Machines will be populated here by JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+            
+            <!-- Table Footer -->
+            <div class="px-6 py-4 border-t border-gray-200 flex justify-between items-center">
+                <div class="text-sm text-gray-500">
+                    Showing <span id="showingCount">10</span> of <span id="totalCount">15</span> machines
+                </div>
+                <div class="flex space-x-2">
+                    <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">1</button>
+                    <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">2</button>
+                    <button class="px-3 py-1 border border-gray-300 rounded-md bg-teal-50 text-teal-700 border-teal-300">3</button>
+                    <button class="px-3 py-1 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empty State (Hidden by default) -->
+        <div id="emptyState" class="hidden bg-white rounded-lg shadow p-12 text-center">
+            <div class="mx-auto w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-6">
+                <i class="fas fa-cogs text-gray-400 text-3xl"></i>
+            </div>
+            <h3 class="heading-font text-xl font-medium text-gray-800 mb-2">No machines registered yet</h3>
+            <p class="text-gray-600 mb-6 max-w-md mx-auto">Register your first dialysis machine to start scheduling patients.</p>
+            <button id="addFirstMachineBtn" class="btn-primary inline-flex items-center">
+                <i class="fas fa-plus mr-2"></i> Add First Machine
+            </button>
+        </div>
+
+        <!-- Loading State (Hidden by default) -->
+        <div id="loadingState" class="hidden bg-white rounded-lg shadow overflow-hidden">
+            <div class="p-6 border-b border-gray-200">
+                <div class="skeleton h-6 w-48 rounded"></div>
+            </div>
+            <div class="p-6">
+                <!-- Skeleton rows -->
+                <div class="space-y-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <div class="skeleton h-10 w-full rounded"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State (Hidden by default) -->
+        <div id="errorState" class="hidden bg-white rounded-lg shadow p-12 text-center">
+            <div class="mx-auto w-24 h-24 rounded-full bg-red-100 flex items-center justify-center mb-6">
+                <i class="fas fa-exclamation-triangle text-red-500 text-3xl"></i>
+            </div>
+            <h3 class="heading-font text-xl font-medium text-gray-800 mb-2">Failed to load machines</h3>
+            <p class="text-gray-600 mb-6 max-w-md mx-auto">There was an error loading the machine data. Please check your connection and try again.</p>
+            <button id="retryLoadingBtn" class="btn-primary inline-flex items-center">
+                <i class="fas fa-redo mr-2"></i> Retry Loading
+            </button>
+        </div>
+    </main>
+
+    <!-- Modals -->
+    
+    <!-- Add Machine Modal -->
+    <div id="addMachineModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="heading-font text-xl font-medium text-gray-800">Register New Machine</h3>
+                <button id="closeAddModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="addMachineForm">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Machine ID *</label>
+                        <input type="text" id="machineId" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="e.g., MACH-001">
+                        <p class="text-xs text-gray-500 mt-1">Must be unique. Example: MACH-001, DIAL-015</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Machine Name *</label>
+                        <input type="text" id="machineName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="e.g., Fresenius 5008">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                        <input type="text" id="location" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="e.g., Station 1, Bay 3">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                        <select id="branch" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="bacolod">Bacolod City (Main)</option>
+                            <option value="talisay" disabled>Talisay (Future)</option>
+                        </select>
+                        <p class="text-xs text-gray-500 mt-1">Only Bacolod branch is active for MVP</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Initial Status</label>
+                        <div class="flex space-x-4">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="status" value="available" checked class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300">
+                                <span class="ml-2 text-gray-700">Available</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="status" value="unavailable" class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300">
+                                <span class="ml-2 text-gray-700">Not Available</span>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="unavailableReasonContainer" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Downtime Reason *</label>
+                        <select id="downtimeReason" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="">Select a reason</option>
+                            <option value="maintenance">Routine Maintenance</option>
+                            <option value="repair">Repair Needed</option>
+                            <option value="cleaning">Deep Cleaning</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div id="otherReasonContainer" class="mt-2 hidden">
+                            <textarea id="otherReason" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="Please specify..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" id="cancelAdd" class="btn-outline">Cancel</button>
+                    <button type="submit" class="btn-primary flex items-center">
+                        <i class="fas fa-save mr-2"></i> Register Machine
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit Machine Modal -->
+    <div id="editMachineModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="heading-font text-xl font-medium text-gray-800">Edit Machine</h3>
+                <button id="closeEditModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="editMachineForm">
+                <input type="hidden" id="editMachineId">
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Machine Name *</label>
+                        <input type="text" id="editMachineName" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Location *</label>
+                        <input type="text" id="editLocation" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Branch *</label>
+                        <select id="editBranch" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="bacolod">Bacolod City (Main)</option>
+                            <option value="talisay" disabled>Talisay (Future)</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" id="cancelEdit" class="btn-outline">Cancel</button>
+                    <button type="submit" class="btn-primary flex items-center">
+                        <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div id="statusModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="heading-font text-xl font-medium text-gray-800">Update Machine Status</h3>
+                <button id="closeStatusModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <form id="statusForm">
+                <input type="hidden" id="statusMachineId">
+                <input type="hidden" id="statusMachineName">
+                
+                <div class="mb-4 p-4 bg-gray-50 rounded-lg">
+                    <p class="font-medium" id="statusMachineInfo"></p>
+                    <p class="text-sm text-gray-600 mt-1" id="statusCurrentStatus"></p>
+                </div>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-3">New Status *</label>
+                        <div class="space-y-2">
+                            <label class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="newStatus" value="available" class="h-4 w-4 text-teal-600 focus:ring-teal-500 border-gray-300">
+                                <div class="ml-3">
+                                    <span class="font-medium text-gray-700">Available</span>
+                                    <p class="text-sm text-gray-500">Machine is operational and can be scheduled</p>
+                                </div>
+                            </label>
+                            
+                            <label class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                                <input type="radio" name="newStatus" value="unavailable" class="h-4 w-4 text-red-600 focus:ring-red-500 border-gray-300">
+                                <div class="ml-3">
+                                    <span class="font-medium text-gray-700">Not Available</span>
+                                    <p class="text-sm text-gray-500">Machine is out of service (requires reason)</p>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                    
+                    <div id="statusReasonContainer" class="hidden">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Downtime Reason *</label>
+                        <select id="statusDowntimeReason" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="">Select a reason</option>
+                            <option value="maintenance">Routine Maintenance</option>
+                            <option value="repair">Repair Needed</option>
+                            <option value="cleaning">Deep Cleaning</option>
+                            <option value="calibration">Calibration</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <div id="statusOtherReasonContainer" class="mt-2 hidden">
+                            <textarea id="statusOtherReason" rows="2" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent" placeholder="Please specify..."></textarea>
+                        </div>
+                        
+                        <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                            <div class="flex">
+                                <i class="fas fa-exclamation-triangle text-yellow-500 mt-0.5 mr-2"></i>
+                                <p class="text-sm text-yellow-800">
+                                    <span class="font-medium">Note:</span> This will affect all scheduled bookings on this machine. Existing bookings will remain but new bookings will be prevented.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-8 flex justify-end space-x-3">
+                    <button type="button" id="cancelStatus" class="btn-outline">Cancel</button>
+                    <button type="submit" class="btn-primary flex items-center">
+                        <i class="fas fa-sync-alt mr-2"></i> Update Status
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full hidden z-50">
+        <div class="relative top-20 mx-auto p-5 border w-full max-w-md shadow-lg rounded-lg bg-white">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="heading-font text-xl font-medium text-gray-800">Delete Machine</h3>
+                <button id="closeDeleteModal" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="mb-6">
+                <div class="mx-auto w-16 h-16 rounded-full bg-red-100 flex items-center justify-center mb-4">
+                    <i class="fas fa-exclamation-triangle text-red-500 text-2xl"></i>
+                </div>
+                <h4 class="text-lg font-medium text-gray-800 text-center mb-2">Are you sure?</h4>
+                <p class="text-gray-600 text-center mb-4" id="deleteMessage"></p>
+                
+                <div id="hasBookingsWarning" class="hidden p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <div class="flex">
+                        <i class="fas fa-exclamation-circle text-red-500 mt-0.5 mr-2"></i>
+                        <div>
+                            <p class="font-medium text-red-800">Cannot Delete Machine</p>
+                            <p class="text-sm text-red-700 mt-1" id="bookingsWarningText"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end space-x-3">
+                <button type="button" id="cancelDelete" class="btn-outline">Cancel</button>
+                <button type="button" id="confirmDelete" class="btn-primary bg-red-600 hover:bg-red-700" disabled>
+                    <i class="fas fa-trash mr-2"></i> Delete Machine
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification -->
+    <div id="toast" class="fixed bottom-4 right-4 bg-gray-800 text-white px-6 py-4 rounded-lg shadow-lg hidden z-50 max-w-sm">
+        <div class="flex items-center">
+            <i id="toastIcon" class="fas fa-check-circle text-green-400 mr-3 text-xl"></i>
+            <div>
+                <p id="toastTitle" class="font-medium"></p>
+                <p id="toastMessage" class="text-sm text-gray-300 mt-1"></p>
+            </div>
+            <button id="closeToast" class="ml-6 text-gray-400 hover:text-white">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Machine data - simulating database
+        const machines = [
+            { id: "MACH-001", name: "Fresenius 5008", location: "Station 1, Bay 1", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-002", name: "Fresenius 5008", location: "Station 1, Bay 2", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-003", name: "Fresenius 5008", location: "Station 1, Bay 3", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-004", name: "Fresenius 5008", location: "Station 1, Bay 4", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-005", name: "Fresenius 5008", location: "Station 2, Bay 1", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-006", name: "Fresenius 5008", location: "Station 2, Bay 2", branch: "Bacolod", status: "unavailable", downtimeReason: "maintenance", notes: "Monthly calibration" },
+            { id: "MACH-007", name: "B. Braun Dialog+", location: "Station 2, Bay 3", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-008", name: "B. Braun Dialog+", location: "Station 2, Bay 4", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-009", name: "B. Braun Dialog+", location: "Station 3, Bay 1", branch: "Bacolod", status: "unavailable", downtimeReason: "repair", notes: "Replacing filter" },
+            { id: "MACH-010", name: "B. Braun Dialog+", location: "Station 3, Bay 2", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-011", name: "B. Braun Dialog+", location: "Station 3, Bay 3", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-012", name: "Nikkiso DBB-EXA", location: "Station 3, Bay 4", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-013", name: "Nikkiso DBB-EXA", location: "Station 4, Bay 1", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-014", name: "Nikkiso DBB-EXA", location: "Station 4, Bay 2", branch: "Bacolod", status: "available", downtimeReason: "", notes: "" },
+            { id: "MACH-015", name: "Nikkiso DBB-EXA", location: "Station 4, Bay 3", branch: "Bacolod", status: "unavailable", downtimeReason: "cleaning", notes: "Post-infection deep clean" }
+        ];
+
+        // State management
+        let currentState = 'ideal'; // 'ideal', 'empty', 'loading', 'error'
+        let machineToDelete = null;
+        let machineToEdit = null;
+        let machineToUpdateStatus = null;
+
+        // DOM Elements
+        const machineTableContainer = document.getElementById('machineTableContainer');
+        const emptyState = document.getElementById('emptyState');
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+        const machineTableBody = document.getElementById('machineTableBody');
+        const showingCount = document.getElementById('showingCount');
+        const totalCount = document.getElementById('totalCount');
+        
+        // Toast elements
+        const toast = document.getElementById('toast');
+        const toastTitle = document.getElementById('toastTitle');
+        const toastMessage = document.getElementById('toastMessage');
+        const toastIcon = document.getElementById('toastIcon');
+        
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadMachines();
+            setupEventListeners();
+            updateStats();
+        });
+
+        // Load machines into the table
+        function loadMachines() {
+            setState('ideal');
+            
+            // Clear the table
+            machineTableBody.innerHTML = '';
+            
+            // Populate the table
+            machines.forEach((machine, index) => {
+                const row = document.createElement('tr');
+                row.className = index % 2 === 0 ? 'bg-white' : 'bg-gray-50';
+                row.innerHTML = `
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${machine.id}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${machine.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${machine.location}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${machine.branch}</td>
+                    <td class="px-6 py-4 whitespace-nowrap">
+                        <span class="status-badge ${machine.status === 'available' ? 'status-available' : 'status-unavailable'}">
+                            <i class="fas ${machine.status === 'available' ? 'fa-check-circle' : 'fa-times-circle'} mr-1.5"></i>
+                            ${machine.status === 'available' ? 'Available' : 'Not Available'}
+                        </span>
+                    </td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <button class="text-teal-600 hover:text-teal-900 mr-4 edit-machine" data-id="${machine.id}">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="text-blue-600 hover:text-blue-900 mr-4 update-status" data-id="${machine.id}">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="text-red-600 hover:text-red-900 delete-machine" data-id="${machine.id}">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                `;
+                machineTableBody.appendChild(row);
+            });
+            
+            showingCount.textContent = machines.length;
+            totalCount.textContent = machines.length;
+        }
+
+        // Set the current UI state
+        function setState(state) {
+            currentState = state;
+            
+            // Hide all states first
+            machineTableContainer.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            
+            // Show the current state
+            switch(state) {
+                case 'ideal':
+                    machineTableContainer.classList.remove('hidden');
+                    break;
+                case 'empty':
+                    emptyState.classList.remove('hidden');
+                    break;
+                case 'loading':
+                    loadingState.classList.remove('hidden');
+                    break;
+                case 'error':
+                    errorState.classList.remove('hidden');
+                    break;
+            }
+        }
+
+        // Update stats cards
+        function updateStats() {
+            const total = machines.length;
+            const available = machines.filter(m => m.status === 'available').length;
+            const unavailable = total - available;
+            
+            // In a real app, we would update the DOM elements
+            console.log(`Total: ${total}, Available: ${available}, Unavailable: ${unavailable}`);
+        }
+
+        // Show toast notification
+        function showToast(title, message, type = 'success') {
+            toastTitle.textContent = title;
+            toastMessage.textContent = message;
+            
+            // Set icon based on type
+            if (type === 'success') {
+                toastIcon.className = 'fas fa-check-circle text-green-400 mr-3 text-xl';
+            } else if (type === 'error') {
+                toastIcon.className = 'fas fa-exclamation-triangle text-red-400 mr-3 text-xl';
+            } else if (type === 'warning') {
+                toastIcon.className = 'fas fa-exclamation-circle text-yellow-400 mr-3 text-xl';
+            } else if (type === 'info') {
+                toastIcon.className = 'fas fa-info-circle text-blue-400 mr-3 text-xl';
+            }
+            
+            toast.classList.remove('hidden');
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 5000);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Add machine button
+            document.getElementById('addMachineBtn').addEventListener('click', () => {
+                document.getElementById('addMachineModal').classList.remove('hidden');
+                document.getElementById('machineId').focus();
+            });
+            
+            document.getElementById('addFirstMachineBtn').addEventListener('click', () => {
+                document.getElementById('addMachineModal').classList.remove('hidden');
+                document.getElementById('machineId').focus();
+            });
+            
+            // Add machine form submission
+            document.getElementById('addMachineForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const machineId = document.getElementById('machineId').value.trim();
+                const machineName = document.getElementById('machineName').value.trim();
+                const location = document.getElementById('location').value.trim();
+                const branch = document.getElementById('branch').value;
+                const status = document.querySelector('input[name="status"]:checked').value;
+                const downtimeReason = document.getElementById('downtimeReason').value;
+                const otherReason = document.getElementById('otherReason').value.trim();
+                
+                // Validate required fields for unavailable status
+                if (status === 'unavailable' && !downtimeReason) {
+                    alert('Please provide a downtime reason when marking machine as unavailable.');
+                    return;
+                }
+                
+                // Check for duplicate machine ID
+                if (machines.some(m => m.id === machineId)) {
+                    alert(`Machine ID "${machineId}" already exists. Please use a unique ID.`);
+                    return;
+                }
+                
+                // Add new machine
+                const newMachine = {
+                    id: machineId,
+                    name: machineName,
+                    location: location,
+                    branch: branch,
+                    status: status,
+                    downtimeReason: downtimeReason === 'other' ? otherReason : downtimeReason,
+                    notes: ''
+                };
+                
+                machines.push(newMachine);
+                
+                // Close modal and reset form
+                document.getElementById('addMachineModal').classList.add('hidden');
+                document.getElementById('addMachineForm').reset();
+                document.getElementById('unavailableReasonContainer').classList.add('hidden');
+                document.getElementById('otherReasonContainer').classList.add('hidden');
+                
+                // Reload machines and show success message
+                loadMachines();
+                updateStats();
+                showToast('Machine Registered', `${machineName} (${machineId}) has been registered successfully.`, 'success');
+            });
+            
+            // Status radio button toggle
+            document.querySelectorAll('input[name="status"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const unavailableReasonContainer = document.getElementById('unavailableReasonContainer');
+                    if (e.target.value === 'unavailable') {
+                        unavailableReasonContainer.classList.remove('hidden');
+                    } else {
+                        unavailableReasonContainer.classList.add('hidden');
+                        document.getElementById('otherReasonContainer').classList.add('hidden');
+                    }
+                });
+            });
+            
+            // Downtime reason change
+            document.getElementById('downtimeReason').addEventListener('change', (e) => {
+                const otherReasonContainer = document.getElementById('otherReasonContainer');
+                if (e.target.value === 'other') {
+                    otherReasonContainer.classList.remove('hidden');
+                } else {
+                    otherReasonContainer.classList.add('hidden');
+                }
+            });
+            
+            // Status form downtime reason change
+            document.getElementById('statusDowntimeReason').addEventListener('change', (e) => {
+                const otherReasonContainer = document.getElementById('statusOtherReasonContainer');
+                if (e.target.value === 'other') {
+                    otherReasonContainer.classList.remove('hidden');
+                } else {
+                    otherReasonContainer.classList.add('hidden');
+                }
+            });
+            
+            // New status radio button toggle in status modal
+            document.querySelectorAll('input[name="newStatus"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    const statusReasonContainer = document.getElementById('statusReasonContainer');
+                    if (e.target.value === 'unavailable') {
+                        statusReasonContainer.classList.remove('hidden');
+                    } else {
+                        statusReasonContainer.classList.add('hidden');
+                        document.getElementById('statusOtherReasonContainer').classList.add('hidden');
+                    }
+                });
+            });
+            
+            // Close modals
+            document.getElementById('closeAddModal').addEventListener('click', () => {
+                document.getElementById('addMachineModal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancelAdd').addEventListener('click', () => {
+                document.getElementById('addMachineModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeEditModal').addEventListener('click', () => {
+                document.getElementById('editMachineModal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancelEdit').addEventListener('click', () => {
+                document.getElementById('editMachineModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeStatusModal').addEventListener('click', () => {
+                document.getElementById('statusModal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancelStatus').addEventListener('click', () => {
+                document.getElementById('statusModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeDeleteModal').addEventListener('click', () => {
+                document.getElementById('deleteModal').classList.add('hidden');
+            });
+            
+            document.getElementById('cancelDelete').addEventListener('click', () => {
+                document.getElementById('deleteModal').classList.add('hidden');
+            });
+            
+            document.getElementById('closeToast').addEventListener('click', () => {
+                toast.classList.add('hidden');
+            });
+            
+            // Retry loading button
+            document.getElementById('retryLoadingBtn').addEventListener('click', () => {
+                setState('loading');
+                setTimeout(() => {
+                    loadMachines();
+                }, 1000);
+            });
+            
+            // Edit machine button (delegated event since rows are dynamic)
+            document.addEventListener('click', (e) => {
+                if (e.target.closest('.edit-machine')) {
+                    const machineId = e.target.closest('.edit-machine').getAttribute('data-id');
+                    openEditModal(machineId);
+                }
+                
+                if (e.target.closest('.update-status')) {
+                    const machineId = e.target.closest('.update-status').getAttribute('data-id');
+                    openStatusModal(machineId);
+                }
+                
+                if (e.target.closest('.delete-machine')) {
+                    const machineId = e.target.closest('.delete-machine').getAttribute('data-id');
+                    openDeleteModal(machineId);
+                }
+            });
+            
+            // Edit machine form submission
+            document.getElementById('editMachineForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const machineId = document.getElementById('editMachineId').value;
+                const machineName = document.getElementById('editMachineName').value.trim();
+                const location = document.getElementById('editLocation').value.trim();
+                const branch = document.getElementById('editBranch').value;
+                
+                // Find and update machine
+                const machineIndex = machines.findIndex(m => m.id === machineId);
+                if (machineIndex !== -1) {
+                    machines[machineIndex].name = machineName;
+                    machines[machineIndex].location = location;
+                    machines[machineIndex].branch = branch;
+                }
+                
+                // Close modal
+                document.getElementById('editMachineModal').classList.add('hidden');
+                
+                // Reload machines and show success message
+                loadMachines();
+                showToast('Machine Updated', `${machineName} (${machineId}) has been updated successfully.`, 'success');
+            });
+            
+            // Status form submission
+            document.getElementById('statusForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                
+                const machineId = document.getElementById('statusMachineId').value;
+                const newStatus = document.querySelector('input[name="newStatus"]:checked').value;
+                const downtimeReason = document.getElementById('statusDowntimeReason').value;
+                const otherReason = document.getElementById('statusOtherReason').value.trim();
+                
+                // Validate required fields for unavailable status
+                if (newStatus === 'unavailable' && !downtimeReason) {
+                    alert('Please provide a downtime reason when marking machine as unavailable.');
+                    return;
+                }
+                
+                // Find and update machine
+                const machineIndex = machines.findIndex(m => m.id === machineId);
+                if (machineIndex !== -1) {
+                    machines[machineIndex].status = newStatus;
+                    machines[machineIndex].downtimeReason = downtimeReason === 'other' ? otherReason : downtimeReason;
+                }
+                
+                // Close modal
+                document.getElementById('statusModal').classList.add('hidden');
+                
+                // Reload machines and show success message
+                loadMachines();
+                updateStats();
+                showToast('Status Updated', `Machine ${machineId} status updated to ${newStatus === 'available' ? 'Available' : 'Not Available'}.`, 'success');
+            });
+            
+            // Delete confirmation
+            document.getElementById('confirmDelete').addEventListener('click', () => {
+                if (!machineToDelete) return;
+                
+                // Check if machine has future bookings (simulated)
+                const hasBookings = Math.random() > 0.7; // 30% chance of having bookings for demo
+                
+                if (hasBookings) {
+                    showToast('Cannot Delete', `Machine ${machineToDelete.id} has future bookings. Cancel bookings first.`, 'error');
+                    document.getElementById('deleteModal').classList.add('hidden');
+                    return;
+                }
+                
+                // Remove machine from array
+                const machineIndex = machines.findIndex(m => m.id === machineToDelete.id);
+                if (machineIndex !== -1) {
+                    const deletedMachine = machines.splice(machineIndex, 1)[0];
+                    
+                    // Close modal
+                    document.getElementById('deleteModal').classList.add('hidden');
+                    
+                    // Reload machines and show success message
+                    loadMachines();
+                    updateStats();
+                    showToast('Machine Deleted', `${deletedMachine.name} (${deletedMachine.id}) has been deleted.`, 'success');
+                }
+                
+                machineToDelete = null;
+            });
+            
+            // Close modals when clicking outside
+            window.addEventListener('click', (e) => {
+                if (e.target.id === 'addMachineModal') {
+                    document.getElementById('addMachineModal').classList.add('hidden');
+                }
+                if (e.target.id === 'editMachineModal') {
+                    document.getElementById('editMachineModal').classList.add('hidden');
+                }
+                if (e.target.id === 'statusModal') {
+                    document.getElementById('statusModal').classList.add('hidden');
+                }
+                if (e.target.id === 'deleteModal') {
+                    document.getElementById('deleteModal').classList.add('hidden');
+                }
+            });
+        }
+
+        // Open edit modal
+        function openEditModal(machineId) {
+            const machine = machines.find(m => m.id === machineId);
+            if (!machine) return;
+            
+            machineToEdit = machine;
+            
+            document.getElementById('editMachineId').value = machine.id;
+            document.getElementById('editMachineName').value = machine.name;
+            document.getElementById('editLocation').value = machine.location;
+            document.getElementById('editBranch').value = machine.branch;
+            
+            document.getElementById('editMachineModal').classList.remove('hidden');
+            document.getElementById('editMachineName').focus();
+        }
+
+        // Open status modal
+        function openStatusModal(machineId) {
+            const machine = machines.find(m => m.id === machineId);
+            if (!machine) return;
+            
+            machineToUpdateStatus = machine;
+            
+            document.getElementById('statusMachineId').value = machine.id;
+            document.getElementById('statusMachineName').value = machine.name;
+            document.getElementById('statusMachineInfo').textContent = `${machine.name} (${machine.id})`;
+            document.getElementById('statusCurrentStatus').textContent = `Current status: ${machine.status === 'available' ? 'Available' : 'Not Available'}`;
+            
+            // Reset form
+            document.getElementById('statusForm').reset();
+            document.getElementById('statusReasonContainer').classList.add('hidden');
+            document.getElementById('statusOtherReasonContainer').classList.add('hidden');
+            
+            // Pre-select current status
+            if (machine.status === 'available') {
+                document.querySelector('input[name="newStatus"][value="available"]').checked = true;
+            } else {
+                document.querySelector('input[name="newStatus"][value="unavailable"]').checked = true;
+                document.getElementById('statusReasonContainer').classList.remove('hidden');
+                document.getElementById('statusDowntimeReason').value = machine.downtimeReason || '';
+                
+                if (machine.downtimeReason && !['maintenance', 'repair', 'cleaning', 'calibration'].includes(machine.downtimeReason)) {
+                    document.getElementById('statusDowntimeReason').value = 'other';
+                    document.getElementById('statusOtherReasonContainer').classList.remove('hidden');
+                    document.getElementById('statusOtherReason').value = machine.downtimeReason;
+                }
+            }
+            
+            document.getElementById('statusModal').classList.remove('hidden');
+        }
+
+        // Open delete modal
+        function openDeleteModal(machineId) {
+            const machine = machines.find(m => m.id === machineId);
+            if (!machine) return;
+            
+            machineToDelete = machine;
+            
+            document.getElementById('deleteMessage').textContent = `You are about to delete ${machine.name} (${machine.id}). This action cannot be undone.`;
+            
+            // Check if machine has future bookings (simulated)
+            const hasBookings = Math.random() > 0.7; // 30% chance of having bookings for demo
+            
+            const hasBookingsWarning = document.getElementById('hasBookingsWarning');
+            const confirmDeleteBtn = document.getElementById('confirmDelete');
+            
+            if (hasBookings) {
+                hasBookingsWarning.classList.remove('hidden');
+                document.getElementById('bookingsWarningText').textContent = `This machine has 3 future bookings. Cancel all bookings before deleting.`;
+                confirmDeleteBtn.disabled = true;
+                confirmDeleteBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else {
+                hasBookingsWarning.classList.add('hidden');
+                confirmDeleteBtn.disabled = false;
+                confirmDeleteBtn.classList.remove('opacity-50', 'cursor-not-allowed');
+            }
+            
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>

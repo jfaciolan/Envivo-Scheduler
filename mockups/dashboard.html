@@ -254,25 +254,30 @@
             background-color: var(--gray-300);
         }
 
+        .btn-sm {
+            padding: var(--spacing-sm) var(--spacing-md);
+            font-size: 14px;
+        }
+
         .btn-icon {
             font-size: 1rem;
         }
 
-        /* ====== DASHBOARD WIDGETS ====== */
-        .dashboard-widgets {
+        /* ====== WEEKLY SUMMARY SECTION ====== */
+        .weekly-summary {
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: repeat(3, 1fr);
             gap: var(--spacing-lg);
             margin-bottom: var(--spacing-xl);
         }
 
-        @media (max-width: 1200px) {
-            .dashboard-widgets {
+        @media (max-width: 992px) {
+            .weekly-summary {
                 grid-template-columns: 1fr;
             }
         }
 
-        .widget {
+        .summary-card {
             background-color: var(--white);
             border-radius: var(--border-radius-lg);
             box-shadow: var(--shadow-sm);
@@ -280,54 +285,113 @@
             border: 1px solid var(--gray-200);
         }
 
-        .widget-header {
-            padding: var(--spacing-lg);
+        .summary-header {
+            padding: var(--spacing-md) var(--spacing-lg);
             border-bottom: 1px solid var(--gray-200);
             background-color: var(--gray-100);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
 
-        .widget-title {
-            font-size: 1.25rem;
+        .summary-title {
+            font-size: 1.125rem;
             color: var(--gray-800);
             display: flex;
             align-items: center;
             gap: var(--spacing-sm);
         }
 
-        .widget-icon {
+        .summary-icon {
             color: var(--envivo-teal);
         }
 
-        .widget-actions {
-            display: flex;
-            gap: var(--spacing-sm);
-        }
-
-        .widget-content {
+        .summary-content {
             padding: var(--spacing-lg);
         }
 
-        .empty-state {
+        .summary-list {
+            list-style: none;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .summary-item {
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .summary-item:last-child {
+            border-bottom: none;
+        }
+
+        .patient-name {
+            font-weight: 500;
+            color: var(--gray-800);
+            flex: 1;
+        }
+
+        .missed-count {
+            font-weight: 600;
+            color: var(--status-unavailable);
+            min-width: 40px;
+            text-align: right;
+        }
+
+        .removal-type {
+            font-size: 0.875rem;
+            color: var(--status-manual-removal);
+            font-style: italic;
+            min-width: 60px;
+            text-align: right;
+        }
+
+        .summary-footer {
             text-align: center;
-            padding: var(--spacing-xl);
+            padding-top: var(--spacing-md);
+            border-top: 1px solid var(--gray-200);
+        }
+
+        /* ====== UTILIZATION STATS ====== */
+        .utilization-stats {
+            display: flex;
+            flex-direction: column;
+            gap: var(--spacing-sm);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-xs) 0;
+        }
+
+        .stat-label {
             color: var(--gray-600);
+            font-size: 0.875rem;
         }
 
-        .empty-icon {
-            font-size: 3rem;
-            margin-bottom: var(--spacing-md);
-            color: var(--gray-400);
+        .stat-value {
+            font-weight: 600;
+            color: var(--gray-800);
         }
 
-        .empty-text {
+        .utilization-rate {
+            padding-top: var(--spacing-sm);
+            border-top: 1px solid var(--gray-300);
+            margin-top: var(--spacing-sm);
+        }
+
+        .rate-value {
+            color: var(--status-available);
+            font-weight: 700;
             font-size: 1.125rem;
-            margin-bottom: var(--spacing-md);
         }
 
-        /* ====== AUTO-REMOVAL WIDGET ====== */
+        /* ====== REMOVED PATIENTS WIDGET ====== */
+        .removed-widget {
+            grid-column: span 1;
+        }
+
         .removal-list {
             list-style: none;
         }
@@ -352,6 +416,9 @@
             font-weight: 600;
             color: var(--gray-800);
             margin-bottom: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-sm);
         }
 
         .removal-meta {
@@ -373,6 +440,23 @@
 
         .removal-type-manual {
             color: var(--status-manual-removal);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: var(--spacing-xl);
+            color: var(--gray-600);
+        }
+
+        .empty-icon {
+            font-size: 3rem;
+            margin-bottom: var(--spacing-md);
+            color: var(--gray-400);
+        }
+
+        .empty-text {
+            font-size: 1.125rem;
+            margin-bottom: var(--spacing-md);
         }
 
         /* ====== SCHEDULE GRID ====== */
@@ -718,6 +802,10 @@
             margin-bottom: var(--spacing-lg);
         }
 
+        .mt-1 {
+            margin-top: var(--spacing-sm);
+        }
+
         .mt-2 {
             margin-top: var(--spacing-md);
         }
@@ -775,7 +863,7 @@
         }
 
         @media (max-width: 768px) {
-            .dashboard-widgets {
+            .weekly-summary {
                 grid-template-columns: 1fr;
             }
             
@@ -811,9 +899,9 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="patient_registration.html" class="nav-link">
                             <i class="nav-icon fas fa-user-injured"></i>
-                            <span>Patient Management</span>
+                            <span>Patient Registration</span>
                         </a>
                     </li>
                     <li class="nav-item">
@@ -829,7 +917,7 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a href="#" class="nav-link">
+                        <a href="machines.html" class="nav-link">
                             <i class="nav-icon fas fa-cogs"></i>
                             <span>Machine Management</span>
                         </a>
@@ -871,35 +959,80 @@
                         <i class="btn-icon fas fa-print"></i>
                         <span>Print Schedule</span>
                     </a>
-                    <a href="#" class="btn btn-primary">
+                    <a href="booking.html" class="btn btn-primary">
                         <i class="btn-icon fas fa-plus"></i>
                         <span>New Booking</span>
                     </a>
                 </div>
             </div>
             
-            <!-- Dashboard Widgets -->
-            <div class="dashboard-widgets">
-                <!-- Auto-Removal Widget -->
-                <div class="widget">
-                    <div class="widget-header">
-                        <h2 class="widget-title">
-                            <i class="widget-icon fas fa-exclamation-triangle"></i>
-                            <span>Auto-Removal Notifications</span>
+            <!-- Weekly Summary Section - 3 Widgets -->
+            <div class="weekly-summary">
+                <!-- Absent Summary Card -->
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <h2 class="summary-title">
+                            <i class="summary-icon fas fa-user-times"></i>
+                            <span>Absent</span>
                         </h2>
                         <div class="widget-actions">
-                            <span class="badge badge-danger">3 New</span>
+                            <span class="badge badge-danger">5</span>
                         </div>
                     </div>
-                    <div class="widget-content">
+                    <div class="summary-content">
+                        <ul class="summary-list">
+                            <li class="summary-item">
+                                <span class="patient-name">Della Cruz, Maria</span>
+                                <span class="missed-count">2/3</span>
+                            </li>
+                            <li class="summary-item">
+                                <span class="patient-name">Santos, Jose Antonio</span>
+                                <span class="missed-count">1/3</span>
+                            </li>
+                            <li class="summary-item">
+                                <span class="patient-name">Reyes, Angelica</span>
+                                <span class="missed-count">1/3</span>
+                            </li>
+                            <li class="summary-item">
+                                <span class="patient-name">Navarro, Miguel Luis</span>
+                                <span class="missed-count">1/3</span>
+                            </li>
+                            <li class="summary-item">
+                                <span class="patient-name">Flores, Rosalinda</span>
+                                <span class="missed-count">1/3</span>
+                            </li>
+                        </ul>
+                        <div class="summary-footer">
+                            <button class="btn btn-secondary btn-sm view-list-btn" data-type="absent">
+                                View All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Removed Patients Widget (Combined) -->
+                <div class="summary-card removed-widget">
+                    <div class="summary-header">
+                        <h2 class="summary-title">
+                            <i class="summary-icon fas fa-user-slash"></i>
+                            <span>Removed Patients</span>
+                        </h2>
+                        <div class="widget-actions">
+                            <span class="badge" style="background-color: rgba(139, 69, 19, 0.2); color: var(--status-manual-removal); border: 1px solid rgba(139, 69, 19, 0.3);">5</span>
+                        </div>
+                    </div>
+                    <div class="summary-content">
                         <ul class="removal-list">
+                            <!-- Auto-Removed Patients -->
                             <li class="removal-item">
                                 <div class="removal-details">
-                                    <div class="removal-patient">Maria Santos</div>
+                                    <div class="removal-patient">
+                                        <i class="fas fa-robot" style="color: var(--status-unavailable); font-size: 0.875rem;"></i>
+                                        <span>Maria Santos</span>
+                                    </div>
                                     <div class="removal-meta">
-                                        <span class="removal-date">Removed: Feb 2, 2026</span>
+                                        <span class="removal-date">Feb 2, 2026</span>
                                         <span class="removal-reason removal-type-auto">
-                                            <i class="fas fa-robot"></i>
                                             <span>3 missed sessions</span>
                                         </span>
                                     </div>
@@ -910,11 +1043,13 @@
                             </li>
                             <li class="removal-item">
                                 <div class="removal-details">
-                                    <div class="removal-patient">Juan Dela Cruz</div>
+                                    <div class="removal-patient">
+                                        <i class="fas fa-robot" style="color: var(--status-unavailable); font-size: 0.875rem;"></i>
+                                        <span>Juan Dela Cruz</span>
+                                    </div>
                                     <div class="removal-meta">
-                                        <span class="removal-date">Removed: Feb 1, 2026</span>
+                                        <span class="removal-date">Feb 1, 2026</span>
                                         <span class="removal-reason removal-type-auto">
-                                            <i class="fas fa-robot"></i>
                                             <span>3 missed sessions</span>
                                         </span>
                                     </div>
@@ -923,52 +1058,17 @@
                                     Re-add
                                 </button>
                             </li>
+                            
+                            <!-- Manually Removed Patients -->
                             <li class="removal-item">
                                 <div class="removal-details">
-                                    <div class="removal-patient">Carlos Reyes</div>
-                                    <div class="removal-meta">
-                                        <span class="removal-date">Removed: Jan 30, 2026</span>
-                                        <span class="removal-reason removal-type-auto">
-                                            <i class="fas fa-robot"></i>
-                                            <span>3 missed sessions</span>
-                                        </span>
+                                    <div class="removal-patient">
+                                        <i class="fas fa-user-edit" style="color: var(--status-manual-removal); font-size: 0.875rem;"></i>
+                                        <span>Ana Lopez</span>
                                     </div>
-                                </div>
-                                <button class="btn btn-secondary btn-sm re-add-btn" data-patient="Carlos Reyes">
-                                    Re-add
-                                </button>
-                            </li>
-                        </ul>
-                        <div class="empty-state" id="empty-auto-removal" style="display: none;">
-                            <div class="empty-icon">
-                                <i class="far fa-check-circle"></i>
-                            </div>
-                            <div class="empty-text">No patients auto-removed.</div>
-                            <p class="text-muted font-sm">Patients are auto-removed after 3 missed sessions.</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Manual Removal Widget -->
-                <div class="widget">
-                    <div class="widget-header">
-                        <h2 class="widget-title">
-                            <i class="widget-icon fas fa-user-slash"></i>
-                            <span>Manual Removals</span>
-                        </h2>
-                        <div class="widget-actions">
-                            <span class="badge" style="background-color: rgba(139, 69, 19, 0.1); color: var(--status-manual-removal); border: 1px solid rgba(139, 69, 19, 0.2);">2</span>
-                        </div>
-                    </div>
-                    <div class="widget-content">
-                        <ul class="removal-list">
-                            <li class="removal-item">
-                                <div class="removal-details">
-                                    <div class="removal-patient">Ana Lopez</div>
                                     <div class="removal-meta">
-                                        <span class="removal-date">Removed: Feb 3, 2026</span>
+                                        <span class="removal-date">Feb 3, 2026</span>
                                         <span class="removal-reason removal-type-manual">
-                                            <i class="fas fa-user-edit"></i>
                                             <span>Moved to other Clinics</span>
                                         </span>
                                     </div>
@@ -979,11 +1079,13 @@
                             </li>
                             <li class="removal-item">
                                 <div class="removal-details">
-                                    <div class="removal-patient">Roberto Garcia</div>
+                                    <div class="removal-patient">
+                                        <i class="fas fa-user-edit" style="color: var(--status-manual-removal); font-size: 0.875rem;"></i>
+                                        <span>Roberto Garcia</span>
+                                    </div>
                                     <div class="removal-meta">
-                                        <span class="removal-date">Removed: Jan 28, 2026</span>
+                                        <span class="removal-date">Jan 28, 2026</span>
                                         <span class="removal-reason removal-type-manual">
-                                            <i class="fas fa-user-edit"></i>
                                             <span>Deceased</span>
                                         </span>
                                     </div>
@@ -992,13 +1094,69 @@
                                     Re-add
                                 </button>
                             </li>
+                            <li class="removal-item">
+                                <div class="removal-details">
+                                    <div class="removal-patient">
+                                        <i class="fas fa-robot" style="color: var(--status-unavailable); font-size: 0.875rem;"></i>
+                                        <span>Carlos Reyes</span>
+                                    </div>
+                                    <div class="removal-meta">
+                                        <span class="removal-date">Jan 30, 2026</span>
+                                        <span class="removal-reason removal-type-auto">
+                                            <span>3 missed sessions</span>
+                                        </span>
+                                    </div>
+                                </div>
+                                <button class="btn btn-secondary btn-sm re-add-btn" data-patient="Carlos Reyes">
+                                    Re-add
+                                </button>
+                            </li>
                         </ul>
-                        <div class="empty-state" id="empty-manual-removal" style="display: none;">
+                        <div class="summary-footer">
+                            <button class="btn btn-secondary btn-sm view-list-btn" data-type="removed">
+                                View All Removals
+                            </button>
+                        </div>
+                        <div class="empty-state" id="empty-removals" style="display: none;">
                             <div class="empty-icon">
                                 <i class="far fa-check-circle"></i>
                             </div>
-                            <div class="empty-text">No manual removals.</div>
-                            <p class="text-muted font-sm">Manual removals are for exceptional cases like transfers or death.</p>
+                            <div class="empty-text">No patients removed.</div>
+                            <p class="text-muted font-sm">Patients are auto-removed after 3 missed sessions or manually removed for exceptional cases.</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Utilization Summary Card -->
+                <div class="summary-card">
+                    <div class="summary-header">
+                        <h2 class="summary-title">
+                            <i class="summary-icon fas fa-chart-bar"></i>
+                            <span>Utilization</span>
+                        </h2>
+                    </div>
+                    <div class="summary-content">
+                        <div class="utilization-stats">
+                            <div class="stat-row">
+                                <span class="stat-label">Booked Slots</span>
+                                <span class="stat-value">437</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Open Slots</span>
+                                <span class="stat-value">102</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Unavailable Slots</span>
+                                <span class="stat-value">1</span>
+                            </div>
+                            <div class="stat-row">
+                                <span class="stat-label">Total Slots</span>
+                                <span class="stat-value">540</span>
+                            </div>
+                            <div class="stat-row utilization-rate">
+                                <span class="stat-label">Utilization Rate</span>
+                                <span class="stat-value rate-value">80.93%</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1068,29 +1226,29 @@
                             </tr>
                             <tr>
                                 <!-- Monday shifts -->
-                                <th class="shift-header">A<br>6-10AM</th>
-                                <th class="shift-header">B<br>10-2PM</th>
-                                <th class="shift-header">C<br>2-6PM</th>
+                                <th class="shift-header">1st<br>6AM-10AM</th>
+                                <th class="shift-header">2nd<br>11AM-3PM</th>
+                                <th class="shift-header">3rd<br>4PM-8PM</th>
                                 <!-- Tuesday shifts -->
-                                <th class="shift-header">A<br>6-10AM</th>
-                                <th class="shift-header">B<br>10-2PM</th>
-                                <th class="shift-header">C<br>2-6PM</th>
+                                <th class="shift-header">1st<br>6AM-10AM</th>
+                                <th class="shift-header">2nd<br>11AM-3PM</th>
+                                <th class="shift-header">3rd<br>4PM-8PM</th>
                                 <!-- Wednesday shifts -->
-                                <th class="shift-header">A<br>6-10AM</th>
-                                <th class="shift-header">B<br>10-2PM</th>
-                                <th class="shift-header">C<br>2-6PM</th>
+                                <th class="shift-header">1st<br>6AM-10AM</th>
+                                <th class="shift-header">2nd<br>11AM-3PM</th>
+                                <th class="shift-header">3rd<br>4PM-8PM</th>
                                 <!-- Thursday shifts -->
-                                <th class="shift-header">A<br>6-10AM</th>
-                                <th class="shift-header">B<br>10-2PM</th>
-                                <th class="shift-header">C<br>2-6PM</th>
+                                <th class="shift-header">1st<br>6AM-10AM</th>
+                                <th class="shift-header">2nd<br>11AM-3PM</th>
+                                <th class="shift-header">3rd<br>4PM-8PM</th>
                                 <!-- Friday shifts -->
-                                <th class="shift-header">A<br>6-10AM</th>
-                                <th class="shift-header">B<br>10-2PM</th>
-                                <th class="shift-header">C<br>2-6PM</th>
+                                <th class="shift-header">1st<br>6AM-10AM</th>
+                                <th class="shift-header">2nd<br>11AM-3PM</th>
+                                <th class="shift-header">3rd<br>4PM-8PM</th>
                                 <!-- Saturday shifts -->
-                                <th class="shift-header">A<br>6-10AM</th>
-                                <th class="shift-header">B<br>10-2PM</th>
-                                <th class="shift-header">C<br>2-6PM</th>
+                                <th class="shift-header">1st<br>6AM-10AM</th>
+                                <th class="shift-header">2nd<br>11AM-3PM</th>
+                                <th class="shift-header">3rd<br>4PM-8PM</th>
                                 <!-- Sunday shifts -->
                                 <th class="shift-header" style="background-color: var(--gray-100);">-</th>
                                 <th class="shift-header" style="background-color: var(--gray-100);">-</th>
@@ -1110,7 +1268,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Jose Reyes</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 1<br>
                                         Status: Scheduled
                                     </div>
@@ -1157,7 +1315,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Maria Santos</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 1<br>
                                         Status: Scheduled
                                     </div>
@@ -1182,7 +1340,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Ana Lopez</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 1<br>
                                         Status: Checked In at 6:15AM
                                     </div>
@@ -1205,7 +1363,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Juan Dela Cruz</strong><br>
-                                        Shift: C (2PM-6PM)<br>
+                                        2nd Shift (4PM-8PM)<br>
                                         Machine: 1<br>
                                         Status: Scheduled
                                     </div>
@@ -1254,7 +1412,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Carlos Reyes</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 1<br>
                                         Status: Scheduled
                                     </div>
@@ -1277,7 +1435,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Elena Torres</strong><br>
-                                        Shift: C (2PM-6PM)<br>
+                                        2nd Shift (4PM-8PM)<br>
                                         Machine: 1<br>
                                         Status: Checked In Late at 2:20PM
                                     </div>
@@ -1302,7 +1460,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Luis Mendoza</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 1<br>
                                         Status: Scheduled
                                     </div>
@@ -1363,7 +1521,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Pedro Gomez</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 2<br>
                                         Status: Scheduled
                                     </div>
@@ -1388,7 +1546,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Sofia Reyes</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 2<br>
                                         Status: Scheduled
                                     </div>
@@ -1400,7 +1558,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Miguel Torres</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 2<br>
                                         Status: Checked In at 10:05AM
                                     </div>
@@ -1436,7 +1594,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Roberto Garcia</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 2<br>
                                         Status: Scheduled
                                     </div>
@@ -1461,7 +1619,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Carmen Lopez</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 2<br>
                                         Status: Scheduled
                                     </div>
@@ -1543,7 +1701,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Isabel Mendoza</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 2<br>
                                         Status: Scheduled
                                     </div>
@@ -1593,7 +1751,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Antonio Reyes</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 3<br>
                                         Status: Scheduled
                                     </div>
@@ -1616,7 +1774,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Beatriz Cruz</strong><br>
-                                        Shift: C (2PM-6PM)<br>
+                                        2nd Shift (4PM-8PM)<br>
                                         Machine: 3<br>
                                         Status: Scheduled
                                     </div>
@@ -1630,7 +1788,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Francisco Lopez</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 3<br>
                                         Status: Checked In at 6:10AM
                                     </div>
@@ -1653,7 +1811,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Gabriela Martinez</strong><br>
-                                        Shift: C (2PM-6PM)<br>
+                                        2nd Shift (4PM-8PM)<br>
                                         Machine: 3<br>
                                         Status: Scheduled
                                     </div>
@@ -1678,7 +1836,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Hector Perez</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 3<br>
                                         Status: Scheduled
                                     </div>
@@ -1703,7 +1861,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Ines Rodriguez</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 3<br>
                                         Status: Scheduled
                                     </div>
@@ -1715,7 +1873,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Javier Sanchez</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 3<br>
                                         Status: Checked In at 10:20AM
                                     </div>
@@ -1751,7 +1909,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Karina Vargas</strong><br>
-                                        Shift: B (10AM-2PM)<br>
+                                        2nd Shift (11AM-3PM)<br>
                                         Machine: 3<br>
                                         Status: Scheduled
                                     </div>
@@ -1776,7 +1934,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Leonardo Diaz</strong><br>
-                                        Shift: A (6AM-10AM)<br>
+                                        1st Shift (6AM-10AM)<br>
                                         Machine: 3<br>
                                         Status: Scheduled
                                     </div>
@@ -1799,7 +1957,7 @@
                                     </div>
                                     <div class="tooltip">
                                         <strong>Monica Espinoza</strong><br>
-                                        Shift: C (2PM-6PM)<br>
+                                        2nd Shift (4PM-8PM)<br>
                                         Machine: 3<br>
                                         Status: Scheduled
                                     </div>
@@ -1852,9 +2010,9 @@
         const prevWeekButton = document.getElementById('prev-week');
         const nextWeekButton = document.getElementById('next-week');
         const reAddButtons = document.querySelectorAll('.re-add-btn');
+        const viewListButtons = document.querySelectorAll('.view-list-btn');
         const scheduleSlots = document.querySelectorAll('.time-slot');
-        const emptyAutoRemoval = document.getElementById('empty-auto-removal');
-        const emptyManualRemoval = document.getElementById('empty-manual-removal');
+        const emptyRemovals = document.getElementById('empty-removals');
         const emptySchedule = document.getElementById('empty-schedule');
         
         // ====== DATE FUNCTIONS ======
@@ -1901,6 +2059,21 @@
             setTimeout(() => {
                 location.reload(); // In a real app, this would fetch new data
             }, 500);
+        });
+        
+        // View List Buttons (in weekly summary)
+        viewListButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const type = this.getAttribute('data-type');
+                
+                if (type === 'absent') {
+                    // Show absent patients in a modal or scroll to auto-removal widget
+                    alert('Showing all patients with missed sessions.\n\nThis would open a detailed list of patients with their missed session counts (X/3).');
+                } else if (type === 'removed') {
+                    // Show removed patients list
+                    alert('Showing all removed patients.\n\nThis would show both auto-removed and manually removed patients with details.');
+                }
+            });
         });
         
         // Re-add Patient Buttons
@@ -2000,26 +2173,15 @@
         
         // ====== UTILITY FUNCTIONS ======
         function checkEmptyStates() {
-            // Check auto-removal list
-            const autoRemovalItems = document.querySelectorAll('#auto-removal-list .removal-item');
-            const visibleAutoItems = Array.from(autoRemovalItems).filter(item => 
+            // Check removals list
+            const removalItems = document.querySelectorAll('.removal-item');
+            const visibleItems = Array.from(removalItems).filter(item => 
                 item.style.opacity !== '0.5' && item.style.display !== 'none'
             );
             
-            if (visibleAutoItems.length === 0) {
-                document.querySelector('#auto-removal-list').style.display = 'none';
-                emptyAutoRemoval.style.display = 'block';
-            }
-            
-            // Check manual removal list
-            const manualRemovalItems = document.querySelectorAll('#manual-removal-list .removal-item');
-            const visibleManualItems = Array.from(manualRemovalItems).filter(item => 
-                item.style.opacity !== '0.5' && item.style.display !== 'none'
-            );
-            
-            if (visibleManualItems.length === 0) {
-                document.querySelector('#manual-removal-list').style.display = 'none';
-                emptyManualRemoval.style.display = 'block';
+            if (visibleItems.length === 0) {
+                document.querySelector('.removal-list').style.display = 'none';
+                emptyRemovals.style.display = 'block';
             }
             
             // Check schedule (in a real app, this would check if there are any scheduled patients)

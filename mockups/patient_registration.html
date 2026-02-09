@@ -1,0 +1,1490 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envivo Dialysis Center | Patient Registration</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Lexend:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* Color Palette - From URD */
+            --envivo-teal: #2D7A78;
+            --envivo-pink: #E86A92;
+            --envivo-cream: #F8F1E5;
+            --status-available: #28A745;
+            --status-scheduled: #0D6EFD;
+            --status-unavailable: #DC3545;
+            --status-warning: #FFC107;
+            --status-complete: #6F42C1;
+            --status-manual-removal: #8B4513;
+            --status-notice: #FFF3CD;
+            
+            /* Typography - From URD */
+            --font-body: 'Inter', sans-serif;
+            --font-heading: 'Lexend', sans-serif;
+            
+            /* Spacing */
+            --spacing-xs: 4px;
+            --spacing-sm: 8px;
+            --spacing-md: 16px;
+            --spacing-lg: 24px;
+            --spacing-xl: 32px;
+            --spacing-xxl: 48px;
+            
+            /* Border Radius */
+            --radius-sm: 4px;
+            --radius-md: 8px;
+            --radius-lg: 12px;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 400;
+            line-height: 1.5;
+            color: #333;
+            background-color: var(--envivo-cream);
+        }
+        
+        /* Header & Navigation */
+        .header {
+            background-color: white;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: var(--spacing-md) var(--spacing-lg);
+        }
+        
+        .logo-container {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .logo-icon {
+            color: var(--envivo-teal);
+            font-size: 24px;
+        }
+        
+        .logo-text {
+            font-family: var(--font-heading);
+            font-weight: 600;
+            font-size: 20px;
+            color: var(--envivo-teal);
+        }
+        
+        .logo-subtext {
+            font-size: 12px;
+            color: #666;
+            margin-top: -4px;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            font-size: 14px;
+        }
+        
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background-color: var(--envivo-teal);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+        
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: var(--spacing-xl) var(--spacing-lg);
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            gap: var(--spacing-xl);
+            min-height: calc(100vh - 80px);
+        }
+        
+        /* Sidebar Navigation */
+        .sidebar {
+            background-color: white;
+            border-radius: var(--radius-md);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            padding: var(--spacing-lg) 0;
+            height: fit-content;
+        }
+        
+        .nav-title {
+            font-family: var(--font-heading);
+            font-size: 14px;
+            font-weight: 600;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0 var(--spacing-lg) var(--spacing-sm);
+            margin-bottom: var(--spacing-sm);
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            padding: var(--spacing-sm) var(--spacing-lg);
+            text-decoration: none;
+            color: #444;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        
+        .nav-item:hover {
+            background-color: rgba(45, 122, 120, 0.05);
+            color: var(--envivo-teal);
+        }
+        
+        .nav-item.active {
+            background-color: rgba(45, 122, 120, 0.08);
+            color: var(--envivo-teal);
+            border-left-color: var(--envivo-teal);
+            font-weight: 600;
+        }
+        
+        .nav-icon {
+            width: 20px;
+            text-align: center;
+            font-size: 14px;
+        }
+        
+        /* Content Area */
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-xl);
+        }
+        
+        .page-title {
+            font-family: var(--font-heading);
+            font-size: 24px;
+            font-weight: 600;
+            color: #222;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+        }
+        
+        .back-link {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+            color: var(--envivo-teal);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .back-link:hover {
+            gap: var(--spacing-sm);
+        }
+        
+        /* Form Container */
+        .form-container {
+            background-color: white;
+            border-radius: var(--radius-lg);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+            padding: var(--spacing-xl);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .form-title {
+            font-family: var(--font-heading);
+            font-size: 20px;
+            font-weight: 600;
+            color: #222;
+            margin-bottom: var(--spacing-md);
+            padding-bottom: var(--spacing-md);
+            border-bottom: 1px solid #eee;
+        }
+        
+        .form-subtitle {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: var(--spacing-xl);
+            line-height: 1.6;
+        }
+        
+        /* Form Styles */
+        .form-group {
+            margin-bottom: var(--spacing-lg);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: var(--spacing-lg);
+        }
+        
+        .full-width {
+            grid-column: 1 / -1;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #444;
+            margin-bottom: var(--spacing-xs);
+        }
+        
+        .form-label .required {
+            color: var(--status-unavailable);
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            background-color: #fcfcfc;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: var(--envivo-teal);
+            box-shadow: 0 0 0 3px rgba(45, 122, 120, 0.1);
+            background-color: white;
+        }
+        
+        .form-input.error {
+            border-color: var(--status-unavailable);
+        }
+        
+        .form-select {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            background-color: #fcfcfc;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 12px center;
+            background-size: 16px;
+        }
+        
+        .form-select:focus {
+            outline: none;
+            border-color: var(--envivo-teal);
+            box-shadow: 0 0 0 3px rgba(45, 122, 120, 0.1);
+            background-color: white;
+        }
+        
+        .form-textarea {
+            width: 100%;
+            padding: 12px 16px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            transition: all 0.2s;
+            background-color: #fcfcfc;
+            min-height: 100px;
+            resize: vertical;
+        }
+        
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--envivo-teal);
+            box-shadow: 0 0 0 3px rgba(45, 122, 120, 0.1);
+            background-color: white;
+        }
+        
+        .error-message {
+            font-size: 12px;
+            color: var(--status-unavailable);
+            margin-top: var(--spacing-xs);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+        
+        /* Address Type Toggle */
+        .address-type-toggle {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xs);
+        }
+        
+        .address-type-option {
+            flex: 1;
+        }
+        
+        .address-type-input {
+            display: none;
+        }
+        
+        .address-type-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .address-type-input:checked + .address-type-label {
+            border-color: var(--envivo-teal);
+            background-color: rgba(45, 122, 120, 0.08);
+            color: var(--envivo-teal);
+            font-weight: 600;
+        }
+        
+        /* Gender Select */
+        .gender-options {
+            display: flex;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xs);
+        }
+        
+        .gender-option {
+            flex: 1;
+        }
+        
+        .gender-input {
+            display: none;
+        }
+        
+        .gender-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+            font-weight: 500;
+        }
+        
+        .gender-input:checked + .gender-label {
+            border-color: var(--envivo-teal);
+            background-color: rgba(45, 122, 120, 0.08);
+            color: var(--envivo-teal);
+            font-weight: 600;
+        }
+        
+        /* Address Sections */
+        .address-section {
+            transition: all 0.3s ease;
+        }
+        
+        .address-section.hidden {
+            display: none;
+        }
+        
+        /* Privacy Consent */
+        .privacy-consent {
+            background-color: rgba(255, 243, 205, 0.3);
+            border: 1px solid var(--status-notice);
+            border-radius: var(--radius-sm);
+            padding: var(--spacing-lg);
+            margin: var(--spacing-xl) 0;
+        }
+        
+        .consent-checkbox {
+            display: flex;
+            align-items: flex-start;
+            gap: var(--spacing-md);
+        }
+        
+        .checkbox-input {
+            margin-top: 4px;
+            accent-color: var(--envivo-teal);
+            width: 18px;
+            height: 18px;
+        }
+        
+        .consent-text {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #444;
+        }
+        
+        .consent-text strong {
+            color: #222;
+        }
+        
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: var(--spacing-md);
+            margin-top: var(--spacing-xl);
+            padding-top: var(--spacing-lg);
+            border-top: 1px solid #eee;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            font-family: var(--font-body);
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: var(--spacing-sm);
+        }
+        
+        .btn-primary {
+            background-color: var(--envivo-pink);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background-color: #d65a81;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(232, 106, 146, 0.3);
+        }
+        
+        .btn-secondary {
+            background-color: #f0f0f0;
+            color: #444;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #e0e0e0;
+        }
+        
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        /* Toast Notification */
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background-color: var(--status-available);
+            color: white;
+            padding: var(--spacing-md) var(--spacing-lg);
+            border-radius: var(--radius-sm);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-md);
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+        
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+        
+        .toast-icon {
+            font-size: 18px;
+        }
+        
+        .toast-message {
+            font-weight: 500;
+        }
+        
+        /* Loading State */
+        .loading {
+            position: relative;
+            pointer-events: none;
+        }
+        
+        .loading::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: var(--radius-lg);
+        }
+        
+        .loading::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 40px;
+            border: 3px solid #f0f0f0;
+            border-top-color: var(--envivo-teal);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            z-index: 10;
+        }
+        
+        @keyframes spin {
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        
+        /* Footer */
+        .footer {
+            background-color: white;
+            padding: var(--spacing-lg);
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #eee;
+            margin-top: var(--spacing-xl);
+        }
+        
+        /* Responsive */
+        @media (max-width: 992px) {
+            .main-container {
+                grid-template-columns: 1fr;
+            }
+            
+            .sidebar {
+                display: none;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+            
+            .gender-options,
+            .address-type-toggle {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <div class="logo-container">
+                <i class="fas fa-heartbeat logo-icon"></i>
+                <div>
+                    <div class="logo-text">Envivo Scheduling System</div>
+                    <div class="logo-subtext">Bacolod Dialysis Center</div>
+                </div>
+            </div>
+            <div class="user-info">
+                <div class="user-avatar">LR</div>
+                <div>
+                    <div style="font-weight: 600;">Lara Reyes</div>
+                    <div style="font-size: 12px; color: #666;">Receptionist</div>
+                </div>
+            </div>
+        </div>
+    </header>
+    
+    <!-- Main Content -->
+    <div class="main-container">
+        <!-- Sidebar Navigation -->
+        <nav class="sidebar">
+            <div class="nav-title">Navigation</div>
+            <a href="dashboard.html" class="nav-item">
+                <div class="nav-icon"><i class="fas fa-home"></i></div>
+                <div>Dashboard</div>
+            </a>
+            <a href="#" class="nav-item active">
+                <div class="nav-icon"><i class="fas fa-user-plus"></i></div>
+                <div>Patient Registration</div>
+            </a>
+            <a href="sign-in-and-out.html" class="nav-item">
+                <div class="nav-icon"><i class="fas fa-calendar-check"></i></div>
+                <div>Daily Check-In</div>
+            </a>
+            <a href="booking.html" class="nav-item">
+                <div class="nav-icon"><i class="fas fa-calendar-alt"></i></div>
+                <div>Schedule Booking</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon"><i class="fas fa-users"></i></div>
+                <div>Patient List</div>
+            </a>
+            <a href="#" class="nav-item">
+                <div class="nav-icon"><i class="fas fa-cogs"></i></div>
+                <div>Machine Management</div>
+            </a>
+        </nav>
+        
+        <!-- Content Area -->
+        <main>
+            <div class="content-header">
+                <h1 class="page-title">
+                    <i class="fas fa-user-plus" style="color: var(--envivo-teal);"></i>
+                    Patient Registration
+                </h1>
+                <a href="dashboard.html" class="back-link">
+                    <i class="fas fa-arrow-left"></i>
+                    Back to Dashboard
+                </a>
+            </div>
+            
+            <!-- Form Container -->
+            <div class="form-container" id="registrationForm">
+                <h2 class="form-title">Register New Patient</h2>
+                <p class="form-subtitle">Fill in all required fields to register a new patient. All patient data is encrypted and stored in compliance with the Data Privacy Act of 2012 (RA 10173).</p>
+                
+                <form id="patientRegistrationForm">
+                    <!-- Personal Information -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="firstName">First Name <span class="required">*</span></label>
+                            <input 
+                                type="text" 
+                                id="firstName" 
+                                class="form-input" 
+                                placeholder="Enter first name"
+                                required
+                            >
+                            <div class="error-message" id="firstNameError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                First name is required
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="lastName">Last Name <span class="required">*</span></label>
+                            <input 
+                                type="text" 
+                                id="lastName" 
+                                class="form-input" 
+                                placeholder="Enter last name"
+                                required
+                            >
+                            <div class="error-message" id="lastNameError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Last name is required
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact Information -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="mobileNumber">Mobile Number <span class="required">*</span></label>
+                            <input 
+                                type="tel" 
+                                id="mobileNumber" 
+                                class="form-input" 
+                                placeholder="09XXXXXXXXX"
+                                pattern="09[0-9]{9}"
+                                maxlength="11"
+                                required
+                            >
+                            <div class="error-message" id="mobileError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Please enter a valid 11-digit mobile number starting with '09'
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label" for="email">Email Address</label>
+                            <input 
+                                type="email" 
+                                id="email" 
+                                class="form-input" 
+                                placeholder="patient@example.com"
+                            >
+                            <div class="error-message" id="emailError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Please enter a valid email address
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Date of Birth & Gender -->
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label" for="dateOfBirth">Date of Birth <span class="required">*</span></label>
+                            <input 
+                                type="date" 
+                                id="dateOfBirth" 
+                                class="form-input" 
+                                required
+                            >
+                            <div class="error-message" id="dobError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Date of birth is required
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Gender <span class="required">*</span></label>
+                            <div class="gender-options">
+                                <div class="gender-option">
+                                    <input type="radio" id="male" name="gender" value="male" class="gender-input" required>
+                                    <label for="male" class="gender-label">Male</label>
+                                </div>
+                                <div class="gender-option">
+                                    <input type="radio" id="female" name="gender" value="female" class="gender-input">
+                                    <label for="female" class="gender-label">Female</label>
+                                </div>
+                                <div class="gender-option">
+                                    <input type="radio" id="other" name="gender" value="other" class="gender-input">
+                                    <label for="other" class="gender-label">Other</label>
+                                </div>
+                            </div>
+                            <div class="error-message" id="genderError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Please select a gender
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Address Section -->
+                    <div class="form-group">
+                        <label class="form-label">Address Type <span class="required">*</span></label>
+                        <div class="address-type-toggle">
+                            <div class="address-type-option">
+                                <input type="radio" id="addressPH" name="addressType" value="ph" class="address-type-input" checked required>
+                                <label for="addressPH" class="address-type-label">Philippine Address</label>
+                            </div>
+                            <div class="address-type-option">
+                                <input type="radio" id="addressInternational" name="addressType" value="international" class="address-type-input">
+                                <label for="addressInternational" class="address-type-label">International Address</label>
+                            </div>
+                        </div>
+                        <div class="error-message" id="addressTypeError" style="display: none;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            Please select an address type
+                        </div>
+                    </div>
+                    
+                    <!-- Philippine Address Fields -->
+                    <div id="phAddressFields" class="address-section">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="region">Region <span class="required">*</span></label>
+                                <select id="region" class="form-select" required>
+                                    <option value="">Select Region</option>
+                                    <option value="NCR">National Capital Region (NCR)</option>
+                                    <option value="Region VI">Region VI (Western Visayas)</option>
+                                    <option value="Region VII">Region VII (Central Visayas)</option>
+                                    <option value="Region VIII">Region VIII (Eastern Visayas)</option>
+                                    <option value="Region IX">Region IX (Zamboanga Peninsula)</option>
+                                    <option value="Region X">Region X (Northern Mindanao)</option>
+                                    <option value="Region XI">Region XI (Davao Region)</option>
+                                    <option value="CAR">Cordillera Administrative Region (CAR)</option>
+                                    <option value="BARMM">Bangsamoro Autonomous Region (BARMM)</option>
+                                </select>
+                                <div class="error-message" id="regionError" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    Region is required
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="province">Province <span class="required">*</span></label>
+                                <select id="province" class="form-select" required>
+                                    <option value="">Select Province</option>
+                                    <option value="Negros Occidental">Negros Occidental</option>
+                                    <option value="Iloilo">Iloilo</option>
+                                    <option value="Capiz">Capiz</option>
+                                    <option value="Aklan">Aklan</option>
+                                    <option value="Antique">Antique</option>
+                                    <option value="Guimaras">Guimaras</option>
+                                </select>
+                                <div class="error-message" id="provinceError" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    Province is required
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="city">City/Municipality <span class="required">*</span></label>
+                                <select id="city" class="form-select" required>
+                                    <option value="">Select City/Municipality</option>
+                                    <option value="Bacolod">Bacolod City</option>
+                                    <option value="Bago">Bago City</option>
+                                    <option value="Cadiz">Cadiz City</option>
+                                    <option value="Escalante">Escalante City</option>
+                                    <option value="Himamaylan">Himamaylan City</option>
+                                    <option value="Kabankalan">Kabankalan City</option>
+                                    <option value="La Carlota">La Carlota City</option>
+                                    <option value="Sagay">Sagay City</option>
+                                    <option value="San Carlos">San Carlos City</option>
+                                    <option value="Silay">Silay City</option>
+                                    <option value="Sipalay">Sipalay City</option>
+                                    <option value="Talisay">Talisay City</option>
+                                    <option value="Victorias">Victorias City</option>
+                                </select>
+                                <div class="error-message" id="cityError" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    City/Municipality is required
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="barangay">Barangay <span class="required">*</span></label>
+                                <select id="barangay" class="form-select" required>
+                                    <option value="">Select Barangay</option>
+                                    <option value="Alangilan">Alangilan</option>
+                                    <option value="Banago">Banago</option>
+                                    <option value="Bata">Bata</option>
+                                    <option value="Estefania">Estefania</option>
+                                    <option value="Mandalagan">Mandalagan</option>
+                                    <option value="Singcang-Airport">Singcang-Airport</option>
+                                    <option value="Sum-ag">Sum-ag</option>
+                                    <option value="Taculing">Taculing</option>
+                                    <option value="Tangub">Tangub</option>
+                                    <option value="Villamonte">Villamonte</option>
+                                </select>
+                                <div class="error-message" id="barangayError" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    Barangay is required
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="form-label" for="street">Street Address <span class="required">*</span></label>
+                            <input 
+                                type="text" 
+                                id="street" 
+                                class="form-input" 
+                                placeholder="House No., Building, Street Name, Subdivision"
+                                required
+                            >
+                            <div class="error-message" id="streetError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Street address is required
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="zipCode">ZIP Code</label>
+                                <input 
+                                    type="text" 
+                                    id="zipCode" 
+                                    class="form-input" 
+                                    placeholder="6100"
+                                    maxlength="4"
+                                >
+                                <div class="error-message" id="zipCodeError" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    Please enter a valid ZIP code
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- International Address Fields -->
+                    <div id="internationalAddressFields" class="address-section hidden">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="country">Country <span class="required">*</span></label>
+                                <select id="country" class="form-select">
+                                    <option value="">Select Country</option>
+                                    <option value="US">United States</option>
+                                    <option value="CA">Canada</option>
+                                    <option value="AU">Australia</option>
+                                    <option value="UK">United Kingdom</option>
+                                    <option value="AE">United Arab Emirates</option>
+                                    <option value="SG">Singapore</option>
+                                    <option value="JP">Japan</option>
+                                    <option value="KR">South Korea</option>
+                                    <option value="CN">China</option>
+                                    <option value="HK">Hong Kong</option>
+                                    <option value="TW">Taiwan</option>
+                                    <option value="SA">Saudi Arabia</option>
+                                    <option value="QA">Qatar</option>
+                                    <option value="KW">Kuwait</option>
+                                    <option value="BH">Bahrain</option>
+                                    <option value="OM">Oman</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <div class="error-message" id="countryError" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    Country is required
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="internationalCity">City <span class="required">*</span></label>
+                                <input 
+                                    type="text" 
+                                    id="internationalCity" 
+                                    class="form-input" 
+                                    placeholder="Enter city"
+                                >
+                                <div class="error-message" id="internationalCityError" style="display: none;">
+                                    <i class="fas fa-exclamation-circle"></i>
+                                    City is required
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label" for="state">State/Province</label>
+                                <input 
+                                    type="text" 
+                                    id="state" 
+                                    class="form-input" 
+                                    placeholder="Enter state or province"
+                                >
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label" for="postalCode">Postal/ZIP Code</label>
+                                <input 
+                                    type="text" 
+                                    id="postalCode" 
+                                    class="form-input" 
+                                    placeholder="Enter postal code"
+                                >
+                            </div>
+                        </div>
+                        
+                        <div class="form-group full-width">
+                            <label class="form-label" for="fullAddress">Full Address <span class="required">*</span></label>
+                            <textarea 
+                                id="fullAddress" 
+                                class="form-textarea" 
+                                placeholder="Complete address including street, building, apartment number, etc."
+                            ></textarea>
+                            <div class="error-message" id="fullAddressError" style="display: none;">
+                                <i class="fas fa-exclamation-circle"></i>
+                                Full address is required
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Privacy Consent -->
+                    <div class="privacy-consent">
+                        <div class="consent-checkbox">
+                            <input 
+                                type="checkbox" 
+                                id="privacyConsent" 
+                                class="checkbox-input"
+                                required
+                            >
+                            <label for="privacyConsent" class="consent-text">
+                                <strong>I acknowledge that my personal data will be processed in accordance with the Data Privacy Act of 2012 (RA 10173).</strong><br>
+                                By checking this box, I consent to the collection, storage, and processing of my personal information for the purpose of scheduling and providing dialysis treatment services at Envivo Dialysis Center.
+                            </label>
+                        </div>
+                        <div class="error-message" id="consentError" style="display: none; margin-top: 12px;">
+                            <i class="fas fa-exclamation-circle"></i>
+                            You must agree to the privacy consent to register a patient
+                        </div>
+                    </div>
+                    
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary" id="cancelBtn">
+                            Cancel
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="submitBtn">
+                            <i class="fas fa-save"></i>
+                            Register Patient
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </main>
+    </div>
+    
+    <!-- Toast Notification -->
+    <div class="toast" id="successToast">
+        <i class="fas fa-check-circle toast-icon"></i>
+        <div class="toast-message" id="toastMessage">Patient registered successfully!</div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="footer">
+        <div>© 2026 Envivo Dialysis Center - Bacolod City. All rights reserved.</div>
+        <div style="margin-top: 4px;">This system complies with the Data Privacy Act of 2012 (RA 10173)</div>
+    </footer>
+    
+    <script>
+        // DOM Elements
+        const form = document.getElementById('patientRegistrationForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const cancelBtn = document.getElementById('cancelBtn');
+        const successToast = document.getElementById('successToast');
+        const toastMessage = document.getElementById('toastMessage');
+        const formContainer = document.getElementById('registrationForm');
+        
+        // Address type toggle
+        const addressTypePH = document.getElementById('addressPH');
+        const addressTypeInternational = document.getElementById('addressInternational');
+        const phAddressFields = document.getElementById('phAddressFields');
+        const internationalAddressFields = document.getElementById('internationalAddressFields');
+        
+        // Address type change handler
+        addressTypePH.addEventListener('change', toggleAddressFields);
+        addressTypeInternational.addEventListener('change', toggleAddressFields);
+        
+        function toggleAddressFields() {
+            if (addressTypePH.checked) {
+                phAddressFields.classList.remove('hidden');
+                internationalAddressFields.classList.add('hidden');
+                
+                // Set required attributes for PH fields
+                document.getElementById('region').required = true;
+                document.getElementById('province').required = true;
+                document.getElementById('city').required = true;
+                document.getElementById('barangay').required = true;
+                document.getElementById('street').required = true;
+                
+                // Remove required attributes for international fields
+                document.getElementById('country').required = false;
+                document.getElementById('internationalCity').required = false;
+                document.getElementById('fullAddress').required = false;
+            } else {
+                phAddressFields.classList.add('hidden');
+                internationalAddressFields.classList.remove('hidden');
+                
+                // Remove required attributes for PH fields
+                document.getElementById('region').required = false;
+                document.getElementById('province').required = false;
+                document.getElementById('city').required = false;
+                document.getElementById('barangay').required = false;
+                document.getElementById('street').required = false;
+                
+                // Set required attributes for international fields
+                document.getElementById('country').required = true;
+                document.getElementById('internationalCity').required = true;
+                document.getElementById('fullAddress').required = true;
+            }
+        }
+        
+        // Initialize address fields
+        toggleAddressFields();
+        
+        // Form validation
+        function validateForm() {
+            let isValid = true;
+            
+            // Reset error states
+            document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+            document.querySelectorAll('.form-input').forEach(el => el.classList.remove('error'));
+            document.querySelectorAll('.form-select').forEach(el => el.classList.remove('error'));
+            document.querySelectorAll('.form-textarea').forEach(el => el.classList.remove('error'));
+            
+            // Validate First Name
+            const firstName = document.getElementById('firstName').value.trim();
+            if (!firstName) {
+                document.getElementById('firstNameError').style.display = 'flex';
+                document.getElementById('firstName').classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate Last Name
+            const lastName = document.getElementById('lastName').value.trim();
+            if (!lastName) {
+                document.getElementById('lastNameError').style.display = 'flex';
+                document.getElementById('lastName').classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate Mobile Number
+            const mobileNumber = document.getElementById('mobileNumber').value.trim();
+            const mobileRegex = /^09[0-9]{9}$/;
+            if (!mobileRegex.test(mobileNumber)) {
+                document.getElementById('mobileError').style.display = 'flex';
+                document.getElementById('mobileNumber').classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate Email (optional but must be valid if provided)
+            const email = document.getElementById('email').value.trim();
+            if (email && !validateEmail(email)) {
+                document.getElementById('emailError').style.display = 'flex';
+                document.getElementById('email').classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate Date of Birth
+            const dob = document.getElementById('dateOfBirth').value;
+            if (!dob) {
+                document.getElementById('dobError').style.display = 'flex';
+                document.getElementById('dateOfBirth').classList.add('error');
+                isValid = false;
+            }
+            
+            // Validate Gender
+            const genderSelected = document.querySelector('input[name="gender"]:checked');
+            if (!genderSelected) {
+                document.getElementById('genderError').style.display = 'flex';
+                isValid = false;
+            }
+            
+            // Validate Address Type
+            const addressTypeSelected = document.querySelector('input[name="addressType"]:checked');
+            if (!addressTypeSelected) {
+                document.getElementById('addressTypeError').style.display = 'flex';
+                isValid = false;
+            }
+            
+            // Validate PH Address if selected
+            if (addressTypePH.checked) {
+                // Region
+                const region = document.getElementById('region').value;
+                if (!region) {
+                    document.getElementById('regionError').style.display = 'flex';
+                    document.getElementById('region').classList.add('error');
+                    isValid = false;
+                }
+                
+                // Province
+                const province = document.getElementById('province').value;
+                if (!province) {
+                    document.getElementById('provinceError').style.display = 'flex';
+                    document.getElementById('province').classList.add('error');
+                    isValid = false;
+                }
+                
+                // City
+                const city = document.getElementById('city').value;
+                if (!city) {
+                    document.getElementById('cityError').style.display = 'flex';
+                    document.getElementById('city').classList.add('error');
+                    isValid = false;
+                }
+                
+                // Barangay
+                const barangay = document.getElementById('barangay').value;
+                if (!barangay) {
+                    document.getElementById('barangayError').style.display = 'flex';
+                    document.getElementById('barangay').classList.add('error');
+                    isValid = false;
+                }
+                
+                // Street
+                const street = document.getElementById('street').value.trim();
+                if (!street) {
+                    document.getElementById('streetError').style.display = 'flex';
+                    document.getElementById('street').classList.add('error');
+                    isValid = false;
+                }
+                
+                // ZIP Code (optional but validate format if provided)
+                const zipCode = document.getElementById('zipCode').value.trim();
+                if (zipCode && !/^\d{4}$/.test(zipCode)) {
+                    document.getElementById('zipCodeError').style.display = 'flex';
+                    document.getElementById('zipCode').classList.add('error');
+                    isValid = false;
+                }
+            }
+            
+            // Validate International Address if selected
+            if (addressTypeInternational.checked) {
+                // Country
+                const country = document.getElementById('country').value;
+                if (!country) {
+                    document.getElementById('countryError').style.display = 'flex';
+                    document.getElementById('country').classList.add('error');
+                    isValid = false;
+                }
+                
+                // City
+                const internationalCity = document.getElementById('internationalCity').value.trim();
+                if (!internationalCity) {
+                    document.getElementById('internationalCityError').style.display = 'flex';
+                    document.getElementById('internationalCity').classList.add('error');
+                    isValid = false;
+                }
+                
+                // Full Address
+                const fullAddress = document.getElementById('fullAddress').value.trim();
+                if (!fullAddress) {
+                    document.getElementById('fullAddressError').style.display = 'flex';
+                    document.getElementById('fullAddress').classList.add('error');
+                    isValid = false;
+                }
+            }
+            
+            // Validate Privacy Consent
+            const consent = document.getElementById('privacyConsent').checked;
+            if (!consent) {
+                document.getElementById('consentError').style.display = 'flex';
+                isValid = false;
+            }
+            
+            return isValid;
+        }
+        
+        function validateEmail(email) {
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
+        }
+        
+        // Form submission
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!validateForm()) {
+                return;
+            }
+            
+            // Show loading state
+            formContainer.classList.add('loading');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+            
+            // Simulate API call
+            setTimeout(() => {
+                // Get form values
+                const formData = {
+                    firstName: document.getElementById('firstName').value.trim(),
+                    lastName: document.getElementById('lastName').value.trim(),
+                    mobileNumber: document.getElementById('mobileNumber').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    dateOfBirth: document.getElementById('dateOfBirth').value,
+                    gender: document.querySelector('input[name="gender"]:checked').value,
+                    addressType: document.querySelector('input[name="addressType"]:checked').value,
+                    privacyConsent: true,
+                    registrationDate: new Date().toISOString().split('T')[0]
+                };
+                
+                // Add address data based on type
+                if (formData.addressType === 'ph') {
+                    formData.address = {
+                        region: document.getElementById('region').value,
+                        province: document.getElementById('province').value,
+                        city: document.getElementById('city').value,
+                        barangay: document.getElementById('barangay').value,
+                        street: document.getElementById('street').value.trim(),
+                        zipCode: document.getElementById('zipCode').value.trim()
+                    };
+                } else {
+                    formData.address = {
+                        country: document.getElementById('country').value,
+                        city: document.getElementById('internationalCity').value.trim(),
+                        state: document.getElementById('state').value.trim(),
+                        postalCode: document.getElementById('postalCode').value.trim(),
+                        fullAddress: document.getElementById('fullAddress').value.trim()
+                    };
+                }
+                
+                // Show success message
+                toastMessage.textContent = `${formData.firstName} ${formData.lastName} registered successfully!`;
+                showToast();
+                
+                // Reset form after 2 seconds
+                setTimeout(() => {
+                    form.reset();
+                    // Reset address type to PH
+                    addressTypePH.checked = true;
+                    toggleAddressFields();
+                    
+                    // Reset date to default
+                    const defaultDate = new Date();
+                    defaultDate.setFullYear(defaultDate.getFullYear() - 30);
+                    document.getElementById('dateOfBirth').value = defaultDate.toISOString().split('T')[0];
+                    
+                    formContainer.classList.remove('loading');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="fas fa-save"></i> Register Patient';
+                    
+                    // In a real app, you would redirect or update UI
+                    console.log('Patient registered:', formData);
+                }, 2000);
+                
+            }, 1500); // Simulate network delay
+        });
+        
+        // Cancel button
+        cancelBtn.addEventListener('click', function() {
+            if (confirm('Are you sure you want to cancel? All unsaved changes will be lost.')) {
+                form.reset();
+                // Reset address type to PH
+                addressTypePH.checked = true;
+                toggleAddressFields();
+                
+                // Reset date to default
+                const defaultDate = new Date();
+                defaultDate.setFullYear(defaultDate.getFullYear() - 30);
+                document.getElementById('dateOfBirth').value = defaultDate.toISOString().split('T')[0];
+                
+                // In a real app, redirect to dashboard
+                window.location.href = '#';
+            }
+        });
+        
+        // Toast notification
+        function showToast() {
+            successToast.classList.add('show');
+            setTimeout(() => {
+                successToast.classList.remove('show');
+            }, 5000);
+        }
+        
+        // Real-time validation for mobile number
+        document.getElementById('mobileNumber').addEventListener('input', function(e) {
+            const value = e.target.value;
+            // Only allow digits and limit to 11 characters
+            e.target.value = value.replace(/\D/g, '').slice(0, 11);
+        });
+        
+        // Real-time validation for email
+        document.getElementById('email').addEventListener('blur', function() {
+            const email = this.value.trim();
+            if (email && !validateEmail(email)) {
+                document.getElementById('emailError').style.display = 'flex';
+                this.classList.add('error');
+            } else {
+                document.getElementById('emailError').style.display = 'none';
+                this.classList.remove('error');
+            }
+        });
+        
+        // Real-time validation for ZIP code (PH)
+        document.getElementById('zipCode').addEventListener('blur', function() {
+            const zipCode = this.value.trim();
+            if (zipCode && !/^\d{4}$/.test(zipCode)) {
+                document.getElementById('zipCodeError').style.display = 'flex';
+                this.classList.add('error');
+            } else {
+                document.getElementById('zipCodeError').style.display = 'none';
+                this.classList.remove('error');
+            }
+        });
+        
+        // Set max date for date of birth (today)
+        const today = new Date().toISOString().split('T')[0];
+        document.getElementById('dateOfBirth').setAttribute('max', today);
+        
+        // Initialize with a reasonable default date (30 years ago)
+        const defaultDate = new Date();
+        defaultDate.setFullYear(defaultDate.getFullYear() - 30);
+        document.getElementById('dateOfBirth').value = defaultDate.toISOString().split('T')[0];
+        
+        // Sample region-province-city-barangay mapping (simplified for demo)
+        // In a real application, this would be populated from a database or API
+        const regionData = {
+            'Region VI': ['Negros Occidental', 'Iloilo', 'Capiz', 'Aklan', 'Antique', 'Guimaras'],
+            'Region VII': ['Cebu', 'Bohol', 'Negros Oriental', 'Siquijor'],
+            'NCR': ['Metro Manila']
+        };
+        
+        const provinceData = {
+            'Negros Occidental': ['Bacolod', 'Bago', 'Cadiz', 'Escalante', 'Himamaylan', 'Kabankalan', 'La Carlota', 'Sagay', 'San Carlos', 'Silay', 'Sipalay', 'Talisay', 'Victorias'],
+            'Iloilo': ['Iloilo City', 'Passi', 'San Jose de Buenavista'],
+            'Metro Manila': ['Manila', 'Quezon City', 'Makati', 'Taguig', 'Pasig', 'Mandaluyong']
+        };
+        
+        const cityData = {
+            'Bacolod': ['Alangilan', 'Banago', 'Bata', 'Estefania', 'Mandalagan', 'Singcang-Airport', 'Sum-ag', 'Taculing', 'Tangub', 'Villamonte'],
+            'Iloilo City': ['Jaro', 'La Paz', 'Lapuz', 'Mandurriao', 'Molo', 'City Proper', 'Arevalo']
+        };
+        
+        // Update provinces based on region selection
+        document.getElementById('region').addEventListener('change', function() {
+            const region = this.value;
+            const provinceSelect = document.getElementById('province');
+            const citySelect = document.getElementById('city');
+            const barangaySelect = document.getElementById('barangay');
+            
+            // Clear and reset province options
+            provinceSelect.innerHTML = '<option value="">Select Province</option>';
+            citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            
+            if (region && regionData[region]) {
+                regionData[region].forEach(province => {
+                    const option = document.createElement('option');
+                    option.value = province;
+                    option.textContent = province;
+                    provinceSelect.appendChild(option);
+                });
+            }
+        });
+        
+        // Update cities based on province selection
+        document.getElementById('province').addEventListener('change', function() {
+            const province = this.value;
+            const citySelect = document.getElementById('city');
+            const barangaySelect = document.getElementById('barangay');
+            
+            // Clear and reset city options
+            citySelect.innerHTML = '<option value="">Select City/Municipality</option>';
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            
+            if (province && provinceData[province]) {
+                provinceData[province].forEach(city => {
+                    const option = document.createElement('option');
+                    option.value = city;
+                    option.textContent = city;
+                    citySelect.appendChild(option);
+                });
+            }
+        });
+        
+        // Update barangays based on city selection
+        document.getElementById('city').addEventListener('change', function() {
+            const city = this.value;
+            const barangaySelect = document.getElementById('barangay');
+            
+            // Clear and reset barangay options
+            barangaySelect.innerHTML = '<option value="">Select Barangay</option>';
+            
+            if (city && cityData[city]) {
+                cityData[city].forEach(barangay => {
+                    const option = document.createElement('option');
+                    option.value = barangay;
+                    option.textContent = barangay;
+                    barangaySelect.appendChild(option);
+                });
+            }
+        });
+    </script>
+</body>
+</html>
